@@ -4,7 +4,7 @@
   'use strict';
   var files = [], preview = [];
   var STORAGE_KEY = 'kkkt_ske_lampiran_h_v1';
-  var columns = ['nama','no','prog','kelas','semester','sesiKeluar','sesiKemasukan'];
+  var columns = ['nama','no','prog','kelas','semester','sesiTamat','sesiKemasukan'];
   function byId(id) { return document.getElementById(id); }
   function safe(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function norm(s) { return String(s || '').replace(/\s+/g,' ').trim(); }
@@ -88,14 +88,14 @@
     var semester=semSesi?semSesi[1]:matchLine(text,['SEMESTER','SEM\.?']);
     var sesi=semSesi?semSesi[2]:matchLine(text,['SESI\s*(?:KELUAR|TAMAT|PENGAJIAN)','ACADEMIC\s*SESSION']);
     // Only the PDF's session code is used for Sesi Keluar.
-    if(window.normalizeSesiKeluar)sesi=window.normalizeSesiKeluar(sesi);
+    if(window.normalizeSesiTamat)sesi=window.normalizeSesiTamat(sesi);
     var prog=matchLine(text,['PROGRAM(?:ME)?','KOD\\s*PROGRAM']);
     // A label may inadvertently match a heading; user must review each value.
     if (!name) name=filename.replace(/\.pdf$/i,'').replace(/^Lampiran\s*H\s*[-–_]\s*/i,'').replace(/[_-]/g,' ');
     if (!prog) prog='Sijil Teknologi Elektrik';
     var plos=extractPLO(text);
     var masuk=window.deriveSesiKemasukan ? window.deriveSesiKemasukan(no) : '';
-    return {nama:name,no:no,prog:prog,kelas:kelas,semester:semester,sesiKeluar:sesi,sesiKemasukan:masuk,
+    return {nama:name,no:no,prog:prog,kelas:kelas,semester:semester,sesiTamat:sesi,sesiKemasukan:masuk,
       plo:plos,source:filename+' ('+pages+' halaman)',selected:true};
   }
   function renderPreview(){
@@ -182,14 +182,16 @@
         function clean(s){return norm(s).replace(/[<>]/g,'');}
         var id='pdf-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
         var item={id:id,nama:clean(r.nama),no:clean(r.no),prog:clean(r.prog),kelas:clean(r.kelas),
-          semester:clean(r.semester),sesiKeluar:clean(r.sesiKeluar),sesiKemasukan:window.deriveSesiKemasukan(r.no)};
-        item.sesi=item.sesiKeluar;
-        item.sesi_keluar=item.sesiKeluar;
+          semester:clean(r.semester),sesiTamat:window.normalizeSesiTamat(r.sesiTamat),sesiKemasukan:window.deriveSesiKemasukan(r.no)};
+        item.sesiKeluar=item.sesiTamat;
+        item.sesi_tamat=item.sesiTamat;
+        item.sesi=item.sesiTamat;
+        item.sesi_keluar=item.sesiTamat;
         item.sesi_kemasukan=item.sesiKemasukan;
         item.batch=window.makeBatchKey ? window.makeBatchKey(item.sesiKemasukan,item.sesi):item.sesiKemasukan;
         if(existing) {
           // Update in place so every tab keeps the same student ID and references.
-          ['nama','prog','kelas','semester','sesiKeluar','sesi','sesi_keluar','sesiKemasukan','sesi_kemasukan','batch'].forEach(function(k){
+          ['nama','prog','kelas','semester','sesiTamat','sesi_tamat','sesiKeluar','sesi','sesi_keluar','sesiKemasukan','sesi_kemasukan','batch'].forEach(function(k){
             if(item[k]) existing[k]=item[k];
           });
           window.ploData[existing.id]=r.plo.slice();
@@ -227,6 +229,10 @@
       if(el.dataset.key){
         preview[i][el.dataset.key]=el.value.trim();
         if(el.dataset.key==='no')renderPreview();
+        if(el.dataset.key==='sesiTamat'){
+          preview[i].sesiTamat=window.normalizeSesiTamat(preview[i].sesiTamat);
+          renderPreview();
+        }
       }
       if(el.dataset.plo!==undefined){
         var v=el.value.trim(),n=Number(v);
