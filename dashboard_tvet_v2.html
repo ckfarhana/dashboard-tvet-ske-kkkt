@@ -812,24 +812,55 @@
      STUDENTS
   ========================================================= */
 
-  /** Terbit Sesi Kemasukan dari No. Pendaftaran
-   *  Format: T01SKE<YY>F<NNN>
-   *  digit ke-3 dari kanan: 0=Sesi I, 5=Sesi II
-   */
+  /** Intake is derived ONLY from the registration number. */
   function deriveSesiKemasukan(no) {
-    if (!no) return 'Tidak Dapat Ditentukan';
-    var s = String(no).replace(/\s+/g,'').toUpperCase();
-    var m = s.match(/SKE(\d{2})/);
-    if (!m) return 'Tidak Dapat Ditentukan';
-    var yy = parseInt(m[1], 10);
-    var yearStart = 2000 + yy;
-    var akademik  = yearStart + '/' + (yearStart + 1);
-    var digits = s.replace(/[^0-9]/g,'');
-    if (digits.length < 3) return 'Tidak Dapat Ditentukan';
-    var sesiDigit = digits[digits.length - 3];
-    if (sesiDigit === '0') return 'Sesi I ' + akademik;
-    if (sesiDigit === '5') return 'Sesi II ' + akademik;
-    return 'Tidak Dapat Ditentukan';
+    var reg=String(no==null?'':no).trim().toUpperCase();
+    var m=reg.match(/^[A-Z]\d{2}SKE(\d{2})[A-Z]\d{3,}$/);
+    if(!m)return 'Tidak Dapat Ditentukan';
+    var digit=reg.charAt(reg.length-3);
+    if(digit!=='0'&&digit!=='5')return 'Tidak Dapat Ditentukan';
+    var year=2000+Number(m[1]);
+    return 'Sesi '+(digit==='0'?'I':'II')+' '+year+'/'+(year+1);
+  }
+
+  /** Lampiran H exit session. Never infer this from the registration number. */
+  function normalizeSesiKeluar(raw) {
+    var value=String(raw==null?'':raw).trim();
+    if(!value)return '';
+    var m=value.match(/^S([12])(\d{2})(\d{2})$/i);
+    return m?'Sesi '+(m[1]==='1'?'I':'II')+' 20'+m[2]+'/20'+m[3]:value;
+  }
+
+  /** Backwards-compatible migration: snake_case plus current dashboard keys. */
+  function syncStudentSessions(student) {
+    var source=student.sesiKeluar!=null?student.sesiKeluar:
+      (student.sesi_keluar!=null?student.sesi_keluar:student.sesi);
+    var keluar=normalizeSesiKeluar(source), masuk=deriveSesiKemasukan(student.no);
+    student.sesiKeluar=keluar;
+    student.sesi_keluar=keluar;
+    student.sesi=keluar;
+    student.sesiKemasukan=masuk;
+    student.sesi_kemasukan=masuk;
+    student.batch=makeBatchKey(masuk,keluar);
+    return student;
+  }
+
+  /** Editable registration; update intake, retain PDF exit, preserve PLO. */
+  function editStudentRegistration(id) {
+    var student=students.find(function(s){return s.id===id;});
+    if(!student)return;
+    var input=prompt('Kemaskini No. Pendaftaran:',student.no||'');
+    if(input===null)return;
+    var no=String(input).trim().toUpperCase();
+    if(!no){alert('No. Pendaftaran tidak boleh kosong.');return;}
+    if(students.some(function(s){return s.id!==id&&String(s.no||'').trim().toUpperCase()===no;})){
+      alert('No. Pendaftaran sudah digunakan oleh pelajar lain.');return;
+    }
+    student.no=no;
+    syncStudentSessions(student);
+    renderStudentList();
+    renderPLOTable();
+    if(typeof window.saveDashboardData==='function')window.saveDashboardData();
   }
 
   function makeBatchKey(masuk, tamat) {
@@ -870,10 +901,8 @@
     var tbody = document.getElementById('student-tbody');
     if (!tbody) return;
 
-    // Apply sesiKemasukan derivation to any existing student missing it
-    students.forEach(function(s){
-      if (!s.sesiKemasukan) s.sesiKemasukan = deriveSesiKemasukan(s.no);
-    });
+    // Recompute from No. Pendaftaran even for previously saved records.
+    students.forEach(syncStudentSessions);
 
     // Populate filter dropdowns
     function populateFilter(selId, vals) {
@@ -888,7 +917,7 @@
     }
     var allSK = students.map(function(s){ return s.sesiKemasukan || 'Tidak Dapat Ditentukan'; });
     var uniqSK = allSK.filter(function(v,i,a){ return a.indexOf(v)===i; });
-    var allSL = students.map(function(s){ return s.sesi || '—'; });
+    var allSL = students.map(function(s){ return s.sesiKeluar || '—'; });
     var uniqSL = allSL.filter(function(v,i,a){ return a.indexOf(v)===i; });
     populateFilter('filter-sesi-kemasukan', uniqSK);
     populateFilter('filter-sesi-keluar', uniqSL);
@@ -900,7 +929,7 @@
     // Filter students
     var filtered = students.filter(function(s){
       var sk = s.sesiKemasukan || 'Tidak Dapat Ditentukan';
-      var sl = s.sesi || '—';
+      var sl = s.sesiKeluar || '—';
       return (!fSK || sk === fSK) && (!fSL || sl === fSL);
     });
 
@@ -927,10 +956,11 @@
         '<td>'+(s.prog||'—')+'</td>' +
         '<td style="font-size:11.5px;">'+(s.kelas||'—')+'</td>' +
         '<td style="text-align:center;">'+(s.semester||'—')+'</td>' +
-        '<td>'+(s.sesi||'—')+'</td>' +
+        '<td>'+(s.sesiKeluar||'—')+'</td>' +
         '<td><span style="'+skStyle+'">'+sk+'</span></td>' +
         '<td style="text-align:center;">'+ploTag+'</td>' +
-        '<td><button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:none;" onclick="removeStudent(\''+s.id+'\')">🗑 Padam</button></td>' +
+        '<td><button class="btn btn-sm btn-neutral" onclick="editStudentRegistration(\''+s.id+'\')">✎ Edit No.</button> ' +
+        '<button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:none;" onclick="removeStudent(\''+s.id+'\')">🗑 Padam</button></td>' +
       '</tr>';
     }).join('');
   }
@@ -1801,7 +1831,7 @@
         '<td>'+(s.prog||'—')+'</td>' +
         '<td style="font-size:11.5px;">'+(s.kelas||'—')+'</td>' +
         '<td style="text-align:center;">'+(s.semester||'—')+'</td>' +
-        '<td>'+(s.sesi||'—')+'</td>' +
+        '<td>'+(s.sesiKeluar||'—')+'</td>' +
       '</tr>';
     }).join('');
   }
@@ -1866,6 +1896,8 @@
   window.makeBatchKey          = makeBatchKey;
   window.confirmClearAll       = confirmClearAll;
   window.deriveSesiKemasukan   = deriveSesiKemasukan;
+  window.normalizeSesiKeluar    = normalizeSesiKeluar;
+  window.syncStudentSessions   = syncStudentSessions;
 
   /* =========================================================
      ANALISIS KOHORT & CQI
@@ -1925,9 +1957,7 @@
 
   /** Pastikan sesiKemasukan dikira untuk semua pelajar */
   function ensureSesiKemasukan() {
-    students.forEach(function(s){
-      if (!s.sesiKemasukan) s.sesiKemasukan = deriveSesiKemasukan(s.no);
-    });
+    students.forEach(syncStudentSessions);
   }
 
   /** Tapis pelajar mengikut filter aktif */
