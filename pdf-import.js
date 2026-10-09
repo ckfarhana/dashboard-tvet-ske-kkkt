@@ -171,26 +171,37 @@
       }finally{if(btn){btn.disabled=false;btn.textContent='⚙️ Ekstrak Data dari PDF';}}
     },
     saveSelected:function(){
+      // Read current preview checkbox values, even if user has not blurred the row.
       var selected=preview.filter(function(r){return r.selected;});
-      var added=0,skipped=0,missing=0,incomplete=0;
+      var added=0,updated=0,missing=0,incomplete=0;
       selected.forEach(function(r){
         if(!norm(r.no)||!norm(r.nama)){missing++;return;}
         if(!Array.isArray(r.plo) || r.plo.filter(function(v){return Number.isFinite(v)&&v>=0&&v<=100;}).length!==9){incomplete++;return;}
-        if(window.students.some(function(s){return String(s.no).toUpperCase()===String(r.no).toUpperCase();})){skipped++;return;}
+        var existing=window.students.find(function(s){return String(s.no||'').trim().toUpperCase()===String(r.no).trim().toUpperCase();});
         function clean(s){return norm(s).replace(/[<>]/g,'');}
         var id='pdf-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
         var item={id:id,nama:clean(r.nama),no:clean(r.no),prog:clean(r.prog),kelas:clean(r.kelas),
           semester:clean(r.semester),sesi:clean(r.sesi),sesiKemasukan:clean(r.sesiKemasukan)};
         item.batch=window.makeBatchKey ? window.makeBatchKey(item.sesiKemasukan,item.sesi):item.sesiKemasukan;
-        window.students.push(item);
-        window.ploData[id]=r.plo.map(function(v){return Number.isFinite(v)?v:null;});
-        added++;
+        if(existing) {
+          // Update in place so every tab keeps the same student ID and references.
+          ['nama','prog','kelas','semester','sesi','sesiKemasukan','batch'].forEach(function(k){
+            if(item[k]) existing[k]=item[k];
+          });
+          window.ploData[existing.id]=r.plo.slice();
+          updated++;
+        } else {
+          window.students.push(item);
+          window.ploData[id]=r.plo.slice();
+          added++;
+        }
       });
       window.renderStudentList();
       persist();
-      if(added && typeof window.renderPLOTable==='function')window.renderPLOTable();
-      if(added && typeof window.calcPLO==='function')window.calcPLO();
-      notice(added+' pelajar disimpan; '+skipped+' pendua; '+missing+' maklumat tidak lengkap; '+incomplete+' rekod PLO kurang daripada 9 (tidak disimpan).',incomplete||missing?'#b91c1c':'#166534');
+      if(typeof window.renderPLOTable==='function')window.renderPLOTable();
+      if((added||updated) && typeof window.calcPLO==='function')window.calcPLO();
+      if((added||updated) && typeof window.calcPEO==='function')window.calcPEO();
+      notice(added+' pelajar baharu; '+updated+' rekod PLO dikemas kini; '+missing+' maklumat tidak lengkap; '+incomplete+' rekod PLO kurang daripada 9 (tidak disimpan).',incomplete||missing?'#b91c1c':'#166534');
     }
   };
   window.Importer=Importer;
