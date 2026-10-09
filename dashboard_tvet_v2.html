@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard TVET SKE KKKT</title>
+<!-- PDF.js CDN (diperlukan untuk Import PDF Lampiran H) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.6; background: #f7f8fa; color: #1f2328; }
+
+  .header { background: #1e3a5f; color: #fff; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .header h1 { font-size: 18px; font-weight: 700; }
+  .header .sub { font-size: 12px; color: #a8c4e0; margin-top: 2px; }
+  .badge { background: #f59e0b; color: #1f2328; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+
+  .tabs { display: flex; background: #fff; border-bottom: 2px solid #e5e7eb; padding: 0 24px; }
+  .tab-btn { padding: 11px 20px; cursor: pointer; font-size: 13px; font-weight: 500; color: #57606a; border: none; background: none; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all .2s; }
+  .tab-btn:hover { color: #1e3a5f; }
+  .tab-btn.active { color: #1e3a5f; border-bottom-color: #1e3a5f; font-weight: 700; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 20px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin-bottom: 18px; }
+  .card-title { font-size: 13px; font-weight: 700; color: #57606a; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 14px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+  @media (max-width: 700px) { .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+
+  .kpi-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; text-align: center; }
+  .kpi-card .kpi-label { font-size: 11px; color: #57606a; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+  .kpi-card .kpi-val { font-size: 28px; font-weight: 700; }
+  .kpi-card .kpi-kpi { font-size: 11px; color: #57606a; margin-top: 4px; }
+  .kpi-card .kpi-status { display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .status-pass { background: #dcfce7; color: #166534; }
+  .status-fail { background: #fee2e2; color: #991b1b; }
+
+  .input-table { width: 100%; border-collapse: collapse; }
+  .input-table th { background: #1e3a5f; color: #fff; padding: 8px 10px; font-size: 11px; text-align: center; }
+  .input-table td { padding: 5px 6px; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
+  .input-table tr:nth-child(even) td { background: #f7f8fa; }
+  .input-table input[type=number], .input-table input[type=text] { width: 100%; padding: 4px 6px; border: 1px solid #d1d5db; border-radius: 5px; font-size: 12px; text-align: center; }
+  .input-table input:focus { outline: 2px solid #3b82d4; border-color: transparent; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: background .2s; }
+  .btn-primary { background: #1e3a5f; color: #fff; }
+  .btn-primary:hover { background: #16304e; }
+  .btn-success { background: #166534; color: #fff; }
+  .btn-warn { background: #d97706; color: #fff; }
+  .btn-neutral { background: #f7f8fa; color: #1f2328; border: 1px solid #d1d5db; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  .progress-wrap { background: #e5e7eb; border-radius: 99px; height: 14px; overflow: hidden; margin: 3px 0; }
+  .progress-bar { height: 100%; border-radius: 99px; font-size: 10px; color: #fff; text-align: right; padding-right: 5px; line-height: 14px; transition: width .5s; }
+  .bar-pass { background: #16a34a; }
+  .bar-fail { background: #dc2626; }
+
+  .result-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .result-table th { background: #1e3a5f; color: #fff; padding: 8px 10px; text-align: center; }
+  .result-table td { padding: 7px 10px; border-bottom: 1px solid #e5e7eb; text-align: center; }
+  .result-table tr:hover td { background: #f0f4f8; }
+  .cell-pass { color: #166534; font-weight: 700; }
+  .cell-fail { color: #991b1b; font-weight: 700; }
+
+  .gap-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .gap-label { width: 52px; font-size: 12px; font-weight: 600; color: #1e3a5f; flex-shrink: 0; }
+  .gap-bar-wrap { flex: 1; background: #e5e7eb; border-radius: 99px; height: 22px; position: relative; overflow: hidden; }
+  .gap-bar-fill { height: 100%; border-radius: 99px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; font-size: 11px; color: #fff; font-weight: 600; min-width: 32px; }
+  .gap-kpi-line { position: absolute; top: 0; height: 100%; width: 2px; background: #1e3a5f; opacity: .6; }
+  .gap-info { width: 90px; text-align: right; font-size: 12px; flex-shrink: 0; }
+
+  .cqi-section { margin-bottom: 18px; }
+  .cqi-section h3 { font-size: 13px; font-weight: 700; color: #1e3a5f; margin-bottom: 10px; padding: 7px 12px; background: #e0eaf5; border-radius: 6px; border-left: 4px solid #1e3a5f; }
+  .cqi-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+  .cqi-item input[type=checkbox] { width: 16px; height: 16px; margin-top: 2px; cursor: pointer; accent-color: #1e3a5f; flex-shrink: 0; }
+  .cqi-item label { cursor: pointer; flex: 1; }
+  .cqi-item .cqi-tag { font-size: 10px; background: #e0eaf5; color: #1e3a5f; padding: 1px 8px; border-radius: 20px; font-weight: 600; margin-left: 6px; }
+  .cqi-prog-bar { background: #e5e7eb; border-radius: 99px; height: 10px; margin-top: 10px; overflow: hidden; }
+  .cqi-prog-fill { height: 100%; border-radius: 99px; background: #1e3a5f; transition: width .4s; }
+  .cqi-pct { font-size: 12px; color: #57606a; margin-top: 4px; text-align: right; }
+
+  .info-box { padding: 10px 14px; border-radius: 7px; margin-bottom: 14px; font-size: 12.5px; }
+  .info-blue  { background: #dbeafe; border-left: 4px solid #3b82f6; color: #1e40af; }
+  .info-green { background: #dcfce7; border-left: 4px solid #16a34a; color: #166534; }
+  .info-red   { background: #fee2e2; border-left: 4px solid #dc2626; color: #991b1b; }
+  .info-amber { background: #fef9c3; border-left: 4px solid #ca8a04; color: #854d0e; }
+
+  .pelajar-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 10px; align-items: end; margin-bottom: 10px; }
+  @media (max-width: 860px) { .pelajar-row { grid-template-columns: 1fr 1fr; } }
+
+  /* Batch */
+  .batch-pill { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #e0eaf5; color: #1e3a5f; }
+  .batch-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .batch-btn { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #d1d5db; background: #f7f8fa; color: #57606a; transition: all .2s; }
+  .batch-btn.active, .batch-btn:hover { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+  .batch-compare-row { display: grid; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label { font-size: 12px; font-weight: 600; color: #57606a; }
+  .form-group input, .form-group select { padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; }
+  .form-group input:focus, .form-group select:focus { outline: 2px solid #3b82d4; border-color: transparent; }
+
+  .student-list { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .student-list th { background: #1e3a5f; color: #fff; padding: 7px 10px; text-align: left; }
+  .student-list td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; }
+  .student-list tr:hover td { background: #f0f4f8; }
+
+  .mt-4 { margin-top: 16px; }
+  .text-muted { color: #57606a; }
+  .fw-700 { font-weight: 700; }
+  .text-center { text-align: center; }
+  .radar-wrap { display: flex; justify-content: center; margin: 10px 0; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; margin-top: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .footer { text-align: center; padding: 18px; font-size: 12px; color: #57606a; border-top: 1px solid #e5e7eb; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🎓 Dashboard TVET SKE KKKT</h1>
+    <div class="sub">Sistem Penilaian Hasil Pembelajaran Pelajar | PLO · PEO · CQI</div>
+  </div>
+  <span class="badge">Sesi 2024/2025</span>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('pelajar', this)">👥 Data Pelajar</button>
+  <button class="tab-btn" onclick="showTab('plo', this)">📊 PLO 1–9</button>
+  <button class="tab-btn" onclick="showTab('peo', this)">🎯 PEO 1–3</button>
+  <button class="tab-btn" onclick="showTab('batch', this)">📦 Analisis Batch</button>
+  <button class="tab-btn" onclick="showTab('gap', this)">📉 Analisis Jurang</button>
+  <button class="tab-btn" onclick="showTab('cqi', this)">✅ Checklist CQI</button>
+</div>
+
+<!-- PAGE: PELAJAR -->
+<div id="page-pelajar" class="page active">
+<div class="container">
+  <div class="card">
+    <div class="card-title">➕ Tambah Pelajar</div>
+    <div class="pelajar-row">
+      <div class="form-group"><label>Nama Pelajar</label><input type="text" id="inp-nama" placeholder="Contoh: Ahmad bin Ali"></div>
+      <div class="form-group"><label>No. Pelajar</label><input type="text" id="inp-nopelajar" placeholder="SKE-24-001"></div>
+      <div class="form-group">
+        <label>Program</label>
+        <select id="inp-program">
+          <option>SKE (Sistem Kawalan Elektrik)</option>
+          <option>KKKT</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Sesi Masuk</label>
+        <select id="inp-sesi-masuk">
+          <option>2020/2021</option><option>2021/2022</option><option>2022/2023</option>
+          <option>2023/2024</option><option selected>2024/2025</option><option>2025/2026</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Sesi Tamat</label>
+        <select id="inp-sesi-tamat">
+          <option>2021/2022</option><option>2022/2023</option><option>2023/2024</option>
+          <option>2024/2025</option><option selected>2025/2026</option><option>2026/2027</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-bar">
+      <button class="btn btn-primary" onclick="addStudent()">➕ Tambah Pelajar</button>
+      <button class="btn btn-warn" onclick="loadSample()">📋 Muat Data Contoh (10 Pelajar)</button>
+      <button class="btn btn-neutral btn-sm" onclick="clearAll()">🗑️ Kosongkan Semua</button>
+    </div>
+  </div>
+
+  <!-- Import PDF Lampiran H -->
+  <div class="card">
+    <div class="card-title">📄 Import PDF Lampiran H</div>
+    <div class="info-box info-blue" style="margin-bottom:12px;">
+      Muat naik PDF <strong>Lampiran H — Laporan Pencapaian PLO Pelajar</strong> untuk mengekstrak maklumat pelajar dan nilai PLO1–PLO9 secara automatik. Semak data sebelum simpan.
+    </div>
+    <div id="pdfjs-status" style="margin-bottom:10px;font-size:12px;color:#57606a;"></div>
+    <div class="btn-bar" style="margin-top:0;">
+      <button class="btn btn-primary" onclick="PdfImport.openModal()" id="btn-import-pdf">
+        📄 Import PDF Lampiran H
+      </button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Senarai Pelajar Berdaftar (<span id="student-count">0</span> orang)</div>
+    <div style="overflow-x:auto;">
+      <table class="student-list">
+        <thead><tr><th>#</th><th>No. Pelajar</th><th>Nama Pelajar</th><th>Program</th><th>Batch</th><th>Sesi Masuk</th><th>Sesi Tamat</th><th>Tindakan</th></tr></thead>
+        <tbody id="student-tbody"></tbody>
+      </table>
+    </div>
+    <div id="no-student" class="info-box info-blue mt-4">ℹ️ Tiada pelajar. Klik <strong>Muat Data Contoh</strong> untuk memulakan atau tambah pelajar secara manual.</div>
+  </div>
+</div>
+</div>
+
+<!-- PAGE: PLO -->
+<div id="page-plo" class="page">
+<div class="container">
+  <div class="info-box info-blue">📌 <strong>KPI PLO:</strong> Setiap PLO mesti dicapai oleh ≥ <strong>80%</strong> pelajar (threshold individu: ≥ 50% markah). Isikan markah (0–100) untuk setiap pelajar.</div>
+  <div class="card">
+    <div class="card-title">📝 Input Markah PLO Pelajar (%)</div>
+    <div style="overflow-x:auto;">
+      <table class="input-table" id="plo-table">
+        <thead>
+          <tr>
+            <th>Pelajar</th>
+            <th>PLO1<br><small>Pengetahuan</small></th>
+            <th>PLO2<br><small>Kemahiran Praktikal / Kemahiran Digital</small></th>
+            <th>PLO3<br><small>Analitikal &amp; Pemikiran Kritikal</small></th>
+            <th>PLO4<br><small>Kemahiran Komunikasi</small></th>
+            <th>PLO5<br><small>Tanggungjawab Sosial</small></th>
+            <th>PLO6<br><small>Pembelajaran Sepanjang Hayat</small></th>
+            <th>PLO7<br><small>Kemahiran Usahawanan &amp; Pengurusan</small></th>
+            <th>PLO8<br><small>Etika &amp; Profesionalisme</small></th>
+            <th>PLO9<br><small>Kerja Berpasukan &amp; Kepimpinan</small></th>
+          </tr>
+        </thead>
+        <tbody id="plo-tbody"></tbody>
+      </table>
+    </div>
+    <div id="plo-no-student" class="info-box info-blue mt-4">ℹ️ Tiada pelajar. Sila tambah pelajar di tab <strong>Data Pelajar</strong>.</div>
+    <div class="btn-bar">
+      <button class="btn btn-primary" onclick="calcPLO()">🔄 Kira & Bandingkan dengan KPI</button>
+      <button class="btn btn-warn btn-sm" onclick="fillRandomPLO()">🎲 Isi Data Rawak</button>
+    </div>
+  </div>
+
+  <!-- Radar Chart Individu Pelajar -->
+  <div id="plo-radar-section" style="display:none;">
+    <div class="card">
+      <div class="card-title">🕸️ Radar Chart — Pencapaian PLO Setiap Pelajar</div>
+      <div class="info-box info-blue" style="margin-bottom:14px;">Pilih pelajar untuk lihat profil PLO individu. Kawasan <span style="color:#1e3a5f;font-weight:700;">biru</span> = KPI 80%, kawasan <span style="color:#16a34a;font-weight:700;">hijau</span> = pencapaian pelajar.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+        <label style="font-size:12px;font-weight:600;color:#57606a;">Pilih Pelajar:</label>
+        <select id="radar-student-select" onchange="renderPLOIndividualRadar()" style="padding:6px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;min-width:220px;"></select>
+        <button class="btn btn-sm" style="background:#f0f4f8;border:1px solid #d1d5db;" onclick="radarPrev()">◀ Sebelum</button>
+        <button class="btn btn-sm" style="background:#f0f4f8;border:1px solid #d1d5db;" onclick="radarNext()">Seterus ▶</button>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start;">
+        <div class="radar-wrap"><svg id="plo-radar-individual" width="360" height="380" style="overflow:visible;"></svg></div>
+        <div id="plo-radar-table" style="min-width:240px;flex:1;"></div>
+      </div>
+    </div>
+    <!-- All students overlay -->
+    <div class="card">
+      <div class="card-title">🕸️ Radar Chart — Semua Pelajar Bertindih (Overlay)</div>
+      <div class="info-box info-blue" style="margin-bottom:12px;">Paparan semua pelajar dalam satu radar untuk perbandingan holistik.</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start;">
+        <div class="radar-wrap"><svg id="plo-radar-overlay" width="380" height="400" style="overflow:visible;"></svg></div>
+        <div id="plo-radar-overlay-legend" style="min-width:180px;flex:1;font-size:12px;padding-top:20px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="plo-result" style="display:none;">
+    <div class="card">
+      <div class="card-title">📊 Keputusan PLO vs KPI (80%)</div>
+      <div style="overflow-x:auto;">
+        <table class="result-table">
+          <thead><tr><th>PLO</th><th>Penerangan</th><th>% Pelajar Lulus</th><th>KPI</th><th>Status</th><th>Jurang</th></tr></thead>
+          <tbody id="plo-result-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📈 Graf Pencapaian PLO vs KPI</div>
+      <div id="plo-bar-chart"></div>
+      <div class="legend mt-4">
+        <div class="legend-item"><div class="legend-dot" style="background:#16a34a;"></div> Capai KPI (≥80%)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#dc2626;"></div> Tidak Capai KPI</div>
+        <div class="legend-item"><div class="legend-dot" style="width:18px;height:4px;border-radius:0;background:none;border-top:2px dashed #94a3b8;margin-top:4px;"></div> Paras KPI 80%</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- PAGE: PEO -->
+<div id="page-peo" class="page">
+<div class="container">
+
+  <div class="info-box info-blue">
+    📌 <strong>Pencapaian PEO dikira secara automatik</strong> berdasarkan purata markah PLO yang dipetakan kepada setiap PEO.<br>
+    Pemetaan ini adalah <strong>tetap</strong> dan tidak boleh diubah. Sila kira PLO dahulu di tab <strong>PLO 1–9</strong>.
+  </div>
+
+  <!-- Matriks Pemetaan PLO–PEO -->
+  <div class="card">
+    <div class="card-title">🗺️ Matriks Pemetaan PLO–PEO (Rujukan Tetap)</div>
+    <div class="info-box info-amber" style="margin-bottom:12px;">
+      Pemetaan ini menunjukkan <strong>sumbangan</strong> setiap PLO kepada PEO. Nilai 1 = ada pemetaan, 0 = tiada pemetaan. Pencapaian PLO bukan pengukuran langsung pencapaian PEO.
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="result-table" id="plo-peo-matrix-table">
+        <thead>
+          <tr>
+            <th>PLO</th>
+            <th style="min-width:160px;">Huraian PLO</th>
+            <th>PEO1<br><small>PLO1,2,3</small></th>
+            <th>PEO2<br><small>PLO6</small></th>
+            <th>PEO3<br><small>PLO4,5,8,9</small></th>
+            <th>PEO4<br><small>PLO7</small></th>
+          </tr>
+        </thead>
+        <tbody id="plo-peo-matrix-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- KPI PEO info -->
+  <div class="card">
+    <div class="card-title">📋 KPI PEO</div>
+    <div class="grid-4">
+      <div class="kpi-card"><div class="kpi-label">PEO1</div><div class="kpi-val" style="font-size:20px;">35%</div><div class="kpi-kpi">Kemahiran Teknikal &amp; Pengetahuan</div></div>
+      <div class="kpi-card"><div class="kpi-label">PEO2</div><div class="kpi-val" style="font-size:20px;">50%</div><div class="kpi-kpi">Kemahiran Kebolehpasaran</div></div>
+      <div class="kpi-card"><div class="kpi-label">PEO3</div><div class="kpi-val" style="font-size:20px;">40%</div><div class="kpi-kpi">Kemahiran Insaniah &amp; Profesional</div></div>
+      <div class="kpi-card"><div class="kpi-label">PEO4</div><div class="kpi-val" style="font-size:20px;">35%</div><div class="kpi-kpi">Kemahiran Keusahawanan</div></div>
+    </div>
+    <div class="btn-bar">
+      <button class="btn btn-primary" onclick="calcPEO()">🔄 Kira PEO daripada Data PLO</button>
+    </div>
+    <div id="peo-no-plo" class="info-box info-amber mt-4">ℹ️ Sila kira PLO dahulu di tab <strong>PLO 1–9</strong> sebelum mengira PEO.</div>
+  </div>
+
+  <div id="peo-result" style="display:none;">
+    <!-- 4 KPI cards -->
+    <div class="grid-4">
+      <div class="kpi-card"><div class="kpi-label">PEO1 — Teknikal &amp; Pengetahuan</div><div class="kpi-val" id="peo1-val">—</div><div class="kpi-kpi">KPI: 35%</div><span class="kpi-status" id="peo1-status">—</span></div>
+      <div class="kpi-card"><div class="kpi-label">PEO2 — Kebolehpasaran</div><div class="kpi-val" id="peo2-val">—</div><div class="kpi-kpi">KPI: 50%</div><span class="kpi-status" id="peo2-status">—</span></div>
+      <div class="kpi-card"><div class="kpi-label">PEO3 — Insaniah &amp; Profesional</div><div class="kpi-val" id="peo3-val">—</div><div class="kpi-kpi">KPI: 40%</div><span class="kpi-status" id="peo3-status">—</span></div>
+      <div class="kpi-card"><div class="kpi-label">PEO4 — Keusahawanan</div><div class="kpi-val" id="peo4-val">—</div><div class="kpi-kpi">KPI: 35%</div><span class="kpi-status" id="peo4-status">—</span></div>
+    </div>
+    <div class="card mt-4">
+      <div class="card-title">📊 Graf PEO vs KPI (dikira daripada PLO)</div>
+      <div id="peo-bar-chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Butiran Pengiraan PEO</div>
+      <div style="overflow-x:auto;">
+        <table class="result-table">
+          <thead><tr><th>PEO</th><th>PLO yang Menyumbang</th><th>Purata Markah PLO (%)</th><th>KPI</th><th>Status</th><th>Jurang</th></tr></thead>
+          <tbody id="peo-detail-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- PAGE: GAP -->
+<div id="page-gap" class="page">
+<div class="container">
+  <div class="info-box info-amber">⚠️ <strong>Analisis Jurang</strong> — Jarak antara pencapaian semasa dan KPI. Nilai negatif memerlukan tindakan penambahbaikan segera.</div>
+  <div id="gap-no-data" class="info-box info-blue">ℹ️ Sila kira PLO dan/atau PEO dahulu untuk melihat analisis jurang.</div>
+  <div id="gap-content" style="display:none;">
+    <div class="card">
+      <div class="card-title">📉 Jurang PLO (Pencapaian Sebenar – KPI 80%)</div>
+      <div id="gap-plo-bars"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📉 Jurang PEO (Pencapaian Sebenar – KPI)</div>
+      <div id="gap-peo-bars"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔍 Item Yang Memerlukan Tindakan CQI Segera</div>
+      <div id="gap-action-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📡 Radar Chart — Pencapaian PLO vs KPI (80%)</div>
+      <div class="radar-wrap"><svg id="radar-svg" width="440" height="450" style="overflow:visible;"></svg></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- PAGE: BATCH -->
+<div id="page-batch" class="page">
+<div class="container">
+  <div class="info-box info-blue">📦 <strong>Analisis Batch</strong> — Lihat dan bandingkan pencapaian PLO 1–9 mengikut kohort (batch) pelajar berdasarkan sesi masuk dan sesi tamat.</div>
+  <div id="batch-no-data" class="info-box info-amber">ℹ️ Tiada data batch. Sila tambah pelajar dengan sesi masuk/tamat, kemudian kira PLO di tab <strong>PLO 1–9</strong>.</div>
+  <div id="batch-content" style="display:none;">
+    <!-- Batch selector -->
+    <div class="card">
+      <div class="card-title">🗂️ Pilih Batch untuk Dipaparkan</div>
+      <div class="batch-selector" id="batch-selector-btns"></div>
+      <div style="font-size:12px;color:#57606a;">Klik batch untuk lihat butiran PLO. Tanda biru = batch aktif dipilih.</div>
+    </div>
+    <!-- Summary cards (all batches) -->
+    <div class="card">
+      <div class="card-title">📊 Ringkasan PLO Semua Batch</div>
+      <div style="overflow-x:auto;"><table class="result-table" id="batch-summary-table">
+        <thead><tr id="batch-summary-thead"></tr></thead>
+        <tbody id="batch-summary-tbody"></tbody>
+      </table></div>
+    </div>
+    <!-- Selected batch detail -->
+    <div class="card" id="batch-detail-card" style="display:none;">
+      <div class="card-title" id="batch-detail-title">Detail Batch</div>
+      <!-- KPI status row -->
+      <div class="grid-4" id="batch-kpi-cards" style="margin-bottom:16px;"></div>
+      <!-- bar chart -->
+      <div id="batch-bar-chart"></div>
+      <div class="legend mt-4">
+        <div class="legend-item"><div class="legend-dot" style="background:#16a34a;"></div> Capai KPI (≥80%)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#dc2626;"></div> Tidak Capai KPI</div>
+      </div>
+      <!-- student list in batch -->
+      <div style="margin-top:16px;">
+        <div class="card-title" style="margin-top:14px;">👤 Senarai Pelajar dalam Batch</div>
+        <div style="overflow-x:auto;"><table class="result-table" id="batch-student-table">
+          <thead><tr><th>#</th><th>No. Pelajar</th><th>Nama</th><th>Program</th><th>Sesi Masuk</th><th>Sesi Tamat</th></tr></thead>
+          <tbody id="batch-student-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+    <!-- Trend comparison chart (multi-batch) -->
+    <div class="card" id="batch-trend-card" style="display:none;">
+      <div class="card-title">📈 Perbandingan PLO Merentas Batch</div>
+      <div id="batch-trend-chart"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- PAGE: CQI -->
+<div id="page-cqi" class="page">
+<div class="container">
+  <div class="info-box info-green">✅ <strong>Checklist CQI (Continuous Quality Improvement)</strong> — Tandakan item yang telah dilaksanakan sebagai bukti penambahbaikan berterusan program TVET SKE KKKT.</div>
+  <div class="card">
+    <div class="card-title">📈 Kemajuan CQI Keseluruhan</div>
+    <div class="cqi-prog-bar"><div class="cqi-prog-fill" id="cqi-fill" style="width:0%"></div></div>
+    <div class="cqi-pct" id="cqi-pct">0 / 24 item (0%)</div>
+  </div>
+  <div class="card">
+
+    <div class="cqi-section">
+      <h3>🔵 A — Semakan Kurikulum &amp; Kandungan Program</h3>
+      <div class="cqi-item"><input type="checkbox" id="c1" onchange="updateCQI()"><label for="c1">Semak dan kemaskini sukatan pelajaran PLO berdasarkan keperluan industri semasa <span class="cqi-tag">PLO1-2</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c2" onchange="updateCQI()"><label for="c2">Pastikan semua hasil pembelajaran (CO) selaras dengan PLO yang berkaitan <span class="cqi-tag">PLO1-9</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c3" onchange="updateCQI()"><label for="c3">Semak semula mapping CO–PLO–PEO setiap semester <span class="cqi-tag">PLO/PEO</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c4" onchange="updateCQI()"><label for="c4">Laksanakan kajian semula kurikulum bersama panel industri sekurang-kurangnya 2 tahun sekali <span class="cqi-tag">PEO</span></label></div>
+    </div>
+
+    <div class="cqi-section">
+      <h3>🟢 B — Kaedah Pengajaran &amp; Pembelajaran (PdP)</h3>
+      <div class="cqi-item"><input type="checkbox" id="c5" onchange="updateCQI()"><label for="c5">Pelbagaikan kaedah PdP: kuliah, hands-on, projek, kunjungan industri <span class="cqi-tag">PLO3</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c6" onchange="updateCQI()"><label for="c6">Gunakan teknologi terkini (simulasi PLC, CAD/CAM, AR/VR) dalam pengajaran <span class="cqi-tag">PLO2-3</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c7" onchange="updateCQI()"><label for="c7">Galakkan pembelajaran aktif: PBL, kolaboratif, inkuiri <span class="cqi-tag">PLO5-7</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c8" onchange="updateCQI()"><label for="c8">Sediakan nota dan bahan pembelajaran digital (e-learning/LMS) <span class="cqi-tag">PLO9</span></label></div>
+    </div>
+
+    <div class="cqi-section">
+      <h3>🟠 C — Pentaksiran &amp; Penilaian</h3>
+      <div class="cqi-item"><input type="checkbox" id="c9" onchange="updateCQI()"><label for="c9">Semak soalan peperiksaan menggunakan matriks Taksonomi Bloom <span class="cqi-tag">PLO1-7</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c10" onchange="updateCQI()"><label for="c10">Pastikan setiap pentaksiran mempunyai rubrik yang jelas dan dikongsi bersama pelajar <span class="cqi-tag">PLO1-9</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c11" onchange="updateCQI()"><label for="c11">Analisis data PLO/PEO setiap semester dan laporkan kepada Jawatankuasa Program <span class="cqi-tag">PLO/PEO</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c12" onchange="updateCQI()"><label for="c12">Laksanakan program remedial/enrichment bagi pelajar di bawah threshold PLO <span class="cqi-tag">PLO</span></label></div>
+    </div>
+
+    <div class="cqi-section">
+      <h3>🟣 D — Latihan Industri &amp; Hubungan Luar</h3>
+      <div class="cqi-item"><input type="checkbox" id="c13" onchange="updateCQI()"><label for="c13">Pastikan syarikat penerima LI menepati keperluan PEO program <span class="cqi-tag">PEO2</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c14" onchange="updateCQI()"><label for="c14">Dapatkan maklum balas majikan/penyelia industri tentang kebolehpasaran graduan <span class="cqi-tag">PEO2</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c15" onchange="updateCQI()"><label for="c15">Anjurkan program networking &amp; kerjaya untuk pelajar akhir <span class="cqi-tag">PEO2-3</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c16" onchange="updateCQI()"><label for="c16">Kemaskini databas alumni dan jalankan kajian susulan 1–3 tahun selepas tamat <span class="cqi-tag">PEO1-3</span></label></div>
+    </div>
+
+    <div class="cqi-section">
+      <h3>🔴 E — Pembangunan Staf &amp; Pengurusan Kualiti</h3>
+      <div class="cqi-item"><input type="checkbox" id="c17" onchange="updateCQI()"><label for="c17">Pastikan semua pensyarah menghadiri latihan OBE/KPI sekurang-kurangnya sekali setahun <span class="cqi-tag">Staf</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c18" onchange="updateCQI()"><label for="c18">Dokumenkan semua tindakan CQI dalam laporan program tahunan <span class="cqi-tag">Kualiti</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c19" onchange="updateCQI()"><label for="c19">Laksanakan mesyuarat Program Review setiap semester menggunakan data PLO/PEO <span class="cqi-tag">Kualiti</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c20" onchange="updateCQI()"><label for="c20">Hantar laporan CQI kepada Pengurusan Kolej/JPPKK/MQA mengikut jadual <span class="cqi-tag">Kualiti</span></label></div>
+    </div>
+
+    <div class="cqi-section">
+      <h3>⚫ F — Tindakan Khusus untuk PLO/PEO Tidak Capai KPI</h3>
+      <div class="cqi-item"><input type="checkbox" id="c21" onchange="updateCQI()"><label for="c21">Kenal pasti punca kegagalan pencapaian menggunakan analisis punca (fishbone diagram) <span class="cqi-tag">Kritikal</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c22" onchange="updateCQI()"><label for="c22">Bangun Pelan Tindakan Penambahbaikan (Action Plan) yang SMART dengan tarikh sasaran <span class="cqi-tag">Kritikal</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c23" onchange="updateCQI()"><label for="c23">Laksanakan sesi bimbingan (mentoring) tambahan bagi PLO/PEO yang kritikal <span class="cqi-tag">Kritikal</span></label></div>
+      <div class="cqi-item"><input type="checkbox" id="c24" onchange="updateCQI()"><label for="c24">Pantau kemajuan tindakan penambahbaikan setiap 2 minggu sehingga KPI dicapai <span class="cqi-tag">Kritikal</span></label></div>
+    </div>
+
+    <div class="btn-bar">
+      <button class="btn btn-success" onclick="checkAll()">☑️ Tandakan Semua</button>
+      <button class="btn btn-neutral btn-sm" onclick="uncheckAll()">Nyah Tanda Semua</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="footer">Made with IBM Bob</div>
+
+<script>
+  /* =========================================================
+     STATE
+  ========================================================= */
+  var students = [];
+  var ploData  = {};        // { studentId: [v0..v8] }
+  var ploCalcResult = null; // [{ pct, avg } x9]
+  var peoCalcResult = null; // [{ avg, kpi } x4] — dikira automatik dari PLO
+  var activeBatch   = null;   // currently selected batch key
+
+  var PLO_LABELS = ['PLO1','PLO2','PLO3','PLO4','PLO5','PLO6','PLO7','PLO8','PLO9'];
+  var PLO_DESC   = [
+    'Pengetahuan',
+    'Kemahiran Praktikal/ Penggunaan Alat Moden/ Kemahiran Digital',
+    'Analitikal, Pemikiran Kritikal, Design Thinking dan Pendekatan Saintifik/ Kemahiran Numerasi',
+    'Kemahiran Komunikasi',
+    'Tanggungjawab Sosial dalam Masyarakat dan Komuniti Teknologis',
+    'Pembelajaran Sepanjang Hayat dan Pengurusan Maklumat/ Kemahiran Personal',
+    'Kemahiran Usahawanan Teknologi dan Kemahiran Pengurusan',
+    'Etika dan Profesionalisme',
+    'Kerja Berpasukan dan Kepimpinan'
+  ];
+  var PEO_LABELS = ['PEO1','PEO2','PEO3','PEO4'];
+  var PEO_KPI    = [35, 50, 40, 35];
+
+  // Pemetaan tetap PLO → PEO (indeks 0-based: PLO1=0..PLO9=8, PEO1=0..PEO4=3)
+  // JANGAN ubah pemetaan ini tanpa arahan pengguna
+  var PLO_PEO_MAP = [
+    // PLO1→PEO1, PLO2→PEO1, PLO3→PEO1
+    0, 0, 0,
+    // PLO4→PEO3, PLO5→PEO3
+    2, 2,
+    // PLO6→PEO2
+    1,
+    // PLO7→PEO4
+    3,
+    // PLO8→PEO3, PLO9→PEO3
+    2, 2
+  ];
+
+  // Matriks PLO-PEO (9 PLO × 4 PEO), nilai 1=ada pemetaan, 0=tiada
+  var PLO_PEO_MATRIX = [
+    [1,0,0,0], // PLO1
+    [1,0,0,0], // PLO2
+    [1,0,0,0], // PLO3
+    [0,0,1,0], // PLO4
+    [0,0,1,0], // PLO5
+    [0,1,0,0], // PLO6
+    [0,0,0,1], // PLO7
+    [0,0,1,0], // PLO8
+    [0,0,1,0]  // PLO9
+  ];
+
+  var PEO_DESC = [
+    'Kemahiran Teknikal & Pengetahuan',
+    'Kemahiran Kebolehpasaran',
+    'Kemahiran Insaniah & Profesional',
+    'Kemahiran Keusahawanan'
+  ];
+  var PLO_KPI    = 80;
+  var THRESHOLD  = 50;  // min score to "pass" a PLO individually
+
+  /* =========================================================
+     TABS
+  ========================================================= */
+  function showTab(t, btn) {
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('page-'+t).classList.add('active');
+    if (t === 'plo') renderPLOTable();
+    if (t === 'peo') renderPLOPEOMatrix();
+    if (t === 'batch') renderBatchPage();
+    if (t === 'gap') renderGap();
+  }
+
+  /* =========================================================
+     STUDENTS
+  ========================================================= */
+  function addStudent() {
+    var nama  = document.getElementById('inp-nama').value.trim();
+    var no    = document.getElementById('inp-nopelajar').value.trim();
+    var prog  = document.getElementById('inp-program').value;
+    var sesiM = document.getElementById('inp-sesi-masuk').value;
+    var sesiT = document.getElementById('inp-sesi-tamat').value;
+    if (!nama || !no) { alert('Sila isi nama dan no. pelajar.'); return; }
+    var batch = makeBatchKey(sesiM, sesiT);
+    students.push({ id: 'S'+Date.now(), nama: nama, no: no, prog: prog, sesiMasuk: sesiM, sesiTamat: sesiT, batch: batch });
+    document.getElementById('inp-nama').value = '';
+    document.getElementById('inp-nopelajar').value = '';
+    renderStudentList();
+  }
+
+  function makeBatchKey(masuk, tamat) {
+    return masuk + ' → ' + tamat;
+  }
+
+  function removeStudent(id) {
+    students = students.filter(function(s){ return s.id !== id; });
+    delete ploData[id];
+    renderStudentList();
+  }
+
+  function renderStudentList() {
+    var tbody = document.getElementById('student-tbody');
+    document.getElementById('student-count').textContent = students.length;
+    document.getElementById('no-student').style.display = students.length ? 'none' : 'block';
+    tbody.innerHTML = students.map(function(s, i){
+      return '<tr>' +
+        '<td>'+(i+1)+'</td>' +
+        '<td><strong>'+s.no+'</strong></td>' +
+        '<td>'+s.nama+'</td>' +
+        '<td>'+s.prog+'</td>' +
+        '<td><span class="batch-pill">'+( s.batch||'—')+'</span></td>' +
+        '<td>'+(s.sesiMasuk||'—')+'</td>' +
+        '<td>'+(s.sesiTamat||'—')+'</td>' +
+        '<td><button class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:none;" onclick="removeStudent(\''+s.id+'\')">🗑 Padam</button></td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  function loadSample() {
+    students = [
+      {id:'s1', nama:'Ahmad Bin Ali',         no:'SKE-22-001', prog:'SKE',  sesiMasuk:'2022/2023', sesiTamat:'2024/2025', batch:makeBatchKey('2022/2023','2024/2025')},
+      {id:'s2', nama:'Siti Nor Binti Hamid',  no:'SKE-22-002', prog:'SKE',  sesiMasuk:'2022/2023', sesiTamat:'2024/2025', batch:makeBatchKey('2022/2023','2024/2025')},
+      {id:'s3', nama:'Mohd Hafiz Bin Rashid', no:'KKT-22-001', prog:'KKKT', sesiMasuk:'2022/2023', sesiTamat:'2024/2025', batch:makeBatchKey('2022/2023','2024/2025')},
+      {id:'s4', nama:'Nurul Ain Binti Yusoff',no:'SKE-23-001', prog:'SKE',  sesiMasuk:'2023/2024', sesiTamat:'2025/2026', batch:makeBatchKey('2023/2024','2025/2026')},
+      {id:'s5', nama:'Azri Bin Zakaria',       no:'KKT-23-001', prog:'KKKT', sesiMasuk:'2023/2024', sesiTamat:'2025/2026', batch:makeBatchKey('2023/2024','2025/2026')},
+      {id:'s6', nama:'Hasniza Binti Osman',   no:'SKE-23-002', prog:'SKE',  sesiMasuk:'2023/2024', sesiTamat:'2025/2026', batch:makeBatchKey('2023/2024','2025/2026')},
+      {id:'s7', nama:'Firdaus Bin Ismail',     no:'KKT-24-001', prog:'KKKT', sesiMasuk:'2024/2025', sesiTamat:'2026/2027', batch:makeBatchKey('2024/2025','2026/2027')},
+      {id:'s8', nama:'Zuraidah Binti Kamal',  no:'SKE-24-001', prog:'SKE',  sesiMasuk:'2024/2025', sesiTamat:'2026/2027', batch:makeBatchKey('2024/2025','2026/2027')},
+      {id:'s9', nama:'Irfan Bin Salleh',       no:'KKT-24-002', prog:'KKKT', sesiMasuk:'2024/2025', sesiTamat:'2026/2027', batch:makeBatchKey('2024/2025','2026/2027')},
+      {id:'s10',nama:'Lina Binti Talib',       no:'SKE-24-002', prog:'SKE',  sesiMasuk:'2024/2025', sesiTamat:'2026/2027', batch:makeBatchKey('2024/2025','2026/2027')}
+    ];
+    ploData = {
+      's1': [82,78,88,74,80,85,76,70,72],
+      's2': [90,85,92,80,88,91,83,75,78],
+      's3': [65,60,70,55,62,68,58,50,52],
+      's4': [88,84,90,78,85,89,80,72,74],
+      's5': [73,68,75,60,70,74,63,55,57],
+      's6': [92,88,94,83,90,93,86,78,80],
+      's7': [55,50,60,45,52,58,48,40,42],
+      's8': [85,80,88,75,82,86,78,68,70],
+      's9': [70,65,72,58,67,72,60,52,54],
+      's10':[78,73,80,68,76,79,70,62,64]
+    };
+    // peoData tidak digunakan lagi — PEO dikira automatik daripada PLO
+    renderStudentList();
+    alert('✅ Data contoh 10 pelajar telah dimuatkan! Pergi ke tab PLO, isi/kira markah, kemudian tab PEO untuk lihat pengiraan PEO.');
+  }
+
+  function clearAll() {
+    if (!confirm('Kosongkan semua data pelajar?')) return;
+    students = []; ploData = {}; ploCalcResult = null; peoCalcResult = null;
+    renderStudentList();
+    document.getElementById('plo-result').style.display = 'none';
+    document.getElementById('plo-radar-section').style.display = 'none';
+    document.getElementById('peo-result').style.display = 'none';
+  }
+
+  /* =========================================================
+     PLO TABLE
+  ========================================================= */
+  function renderPLOTable() {
+    var tbody = document.getElementById('plo-tbody');
+    document.getElementById('plo-no-student').style.display = students.length ? 'none' : 'block';
+    tbody.innerHTML = students.map(function(s){
+      var vals = ploData[s.id] || Array(9).fill('');
+      return '<tr>' +
+        '<td><strong>'+s.no+'</strong><br><small class="text-muted">'+s.nama+'</small></td>' +
+        vals.map(function(v,i){
+          return '<td><input type="number" min="0" max="100" value="'+v+'" id="plo-'+s.id+'-'+i+'" placeholder="—"></td>';
+        }).join('') +
+      '</tr>';
+    }).join('');
+  }
+
+  function calcPLO() {
+    if (!students.length) { alert('Tiada pelajar. Tambah pelajar dahulu.'); return; }
+    students.forEach(function(s){
+      ploData[s.id] = PLO_LABELS.map(function(_, i){
+        var el = document.getElementById('plo-'+s.id+'-'+i);
+        var v = el ? parseFloat(el.value) : NaN;
+        return isNaN(v) ? null : v;
+      });
+    });
+    ploCalcResult = PLO_LABELS.map(function(_, pi){
+      var vals = students.map(function(s){ return ploData[s.id][pi]; }).filter(function(v){ return v !== null; });
+      if (!vals.length) return null;
+      var pass = vals.filter(function(v){ return v >= THRESHOLD; }).length;
+      var pct  = Math.round((pass / vals.length) * 1000) / 10;
+      var avg  = Math.round(vals.reduce(function(a,b){ return a+b; },0) / vals.length * 10) / 10;
+      return { pct: pct, avg: avg };
+    });
+    renderPLOResult();
+    document.getElementById('plo-result').style.display = 'block';
+    // Show individual radar section
+    document.getElementById('plo-radar-section').style.display = 'block';
+    // Populate student dropdown
+    var sel = document.getElementById('radar-student-select');
+    sel.innerHTML = students.map(function(s){
+      return '<option value="'+s.id+'">'+s.no+' — '+s.nama+'</option>';
+    }).join('');
+    renderPLOIndividualRadar();
+    renderPLOOverlayRadar();
+  }
+
+  function renderPLOResult() {
+    var tbody = document.getElementById('plo-result-tbody');
+    tbody.innerHTML = ploCalcResult.map(function(r, i){
+      if (!r) return '<tr><td>'+PLO_LABELS[i]+'</td><td>'+PLO_DESC[i]+'</td><td colspan="4" class="text-muted">Tiada data</td></tr>';
+      var pass = r.pct >= PLO_KPI;
+      var gap  = (r.pct - PLO_KPI).toFixed(1);
+      var gapHTML = gap >= 0 ? '<span style="color:#16a34a">+'+gap+'%</span>' : '<span style="color:#dc2626">'+gap+'%</span>';
+      return '<tr>' +
+        '<td class="fw-700">'+PLO_LABELS[i]+'</td>' +
+        '<td>'+PLO_DESC[i]+'</td>' +
+        '<td style="min-width:160px;">' +
+          '<div class="progress-wrap"><div class="progress-bar '+(pass?'bar-pass':'bar-fail')+'" style="width:'+r.pct+'%">'+r.pct+'%</div></div>' +
+          '<small class="text-muted">Purata markah: '+r.avg+'%</small>' +
+        '</td>' +
+        '<td>'+PLO_KPI+'%</td>' +
+        '<td><span class="kpi-status '+(pass?'status-pass':'status-fail')+'">'+(pass?'✅ CAPAI':'❌ TIDAK CAPAI')+'</span></td>' +
+        '<td>'+gapHTML+'</td>' +
+      '</tr>';
+    }).join('');
+    renderPLOBarChart();
+  }
+
+  function renderPLOBarChart() {
+    var container = document.getElementById('plo-bar-chart');
+    var svgW = 680, svgH = 200, scaleH = 160;
+    var n = 9, bw = 44, gap = 20;
+    var totalW = n * (bw + gap) + gap + 40;
+    var svg = '<svg viewBox="0 0 '+Math.max(totalW,600)+' '+(svgH+30)+'" style="width:100%;height:'+(svgH+30)+'px;">';
+    ploCalcResult.forEach(function(r, i){
+      if (!r) return;
+      var x = gap + i * (bw + gap);
+      var barH = (r.pct / 100) * scaleH;
+      var col = r.pct >= PLO_KPI ? '#16a34a' : '#dc2626';
+      svg += '<rect x="'+x+'" y="'+(svgH-barH)+'" width="'+bw+'" height="'+barH+'" fill="'+col+'" rx="4"/>';
+      svg += '<text x="'+(x+bw/2)+'" y="'+(svgH-barH-4)+'" text-anchor="middle" font-size="11" fill="'+col+'" font-weight="bold">'+r.pct+'%</text>';
+      svg += '<text x="'+(x+bw/2)+'" y="'+(svgH+16)+'" text-anchor="middle" font-size="10.5" fill="#57606a">'+PLO_LABELS[i]+'</text>';
+    });
+    var kpiY = svgH - (PLO_KPI / 100) * scaleH;
+    svg += '<line x1="0" y1="'+kpiY+'" x2="'+Math.max(totalW,600)+'" y2="'+kpiY+'" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6,4"/>';
+    svg += '<text x="6" y="'+(kpiY-4)+'" font-size="10" fill="#94a3b8" font-weight="bold">KPI '+PLO_KPI+'%</text>';
+    svg += '</svg>';
+    container.innerHTML = svg;
+  }
+
+  /* =========================================================
+     PLO INDIVIDUAL RADAR
+  ========================================================= */
+  var RADAR_COLORS = ['#1e3a5f','#16a34a','#dc2626','#d97706','#7c3aed','#0891b2','#db2777','#ea580c','#65a30d','#0284c7'];
+
+  function radarMakeEl(tag, attrs, text) {
+    var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    Object.keys(attrs).forEach(function(k){ el.setAttribute(k, attrs[k]); });
+    if (text !== undefined) el.textContent = text;
+    return el;
+  }
+
+  function radarDrawBase(svg, cx, cy, rad, angles, gridVals) {
+    // Grid polygons + labels
+    gridVals.forEach(function(v){
+      var pts = angles.map(function(a){
+        return [(cx+(v/100)*rad*Math.cos(a)).toFixed(1),(cy+(v/100)*rad*Math.sin(a)).toFixed(1)];
+      });
+      var d = pts.map(function(p,i){ return (i?'L':'M')+p[0]+','+p[1]; }).join(' ')+'Z';
+      svg.appendChild(radarMakeEl('path',{d:d,fill:'none',stroke:v===80?'#1e3a5f':'#e5e7eb','stroke-width':v===80?'1.5':'1','stroke-dasharray':v===80?'4,3':''}));
+      svg.appendChild(radarMakeEl('text',{x:cx+3,y:(cy-(v/100)*rad+3).toFixed(1),'font-size':'9',fill:'#b0b8c1','text-anchor':'start'},v+'%'));
+    });
+    // Axes
+    angles.forEach(function(a){
+      svg.appendChild(radarMakeEl('line',{x1:cx,y1:cy,x2:(cx+rad*Math.cos(a)).toFixed(1),y2:(cy+rad*Math.sin(a)).toFixed(1),stroke:'#e5e7eb','stroke-width':'1'}));
+    });
+  }
+
+  function radarDrawLabels(svg, cx, cy, rad, angles, labels) {
+    angles.forEach(function(a, i){
+      var lx = (cx+(rad+22)*Math.cos(a)).toFixed(1);
+      var ly = (cy+(rad+22)*Math.sin(a)).toFixed(1);
+      svg.appendChild(radarMakeEl('text',{x:lx,y:ly,'text-anchor':'middle','dominant-baseline':'middle','font-size':'10.5','font-weight':'600',fill:'#1e3a5f'},labels[i]));
+    });
+  }
+
+  function radarDrawPolygon(svg, vals, cx, cy, rad, angles, fill, stroke, strokeW, opacity) {
+    var pts = vals.map(function(v, i){
+      var pct = Math.min(Math.max(v||0, 0), 100);
+      return [(cx+(pct/100)*rad*Math.cos(angles[i])).toFixed(1),(cy+(pct/100)*rad*Math.sin(angles[i])).toFixed(1)];
+    });
+    var d = pts.map(function(p,i){ return (i?'L':'M')+p[0]+','+p[1]; }).join(' ')+'Z';
+    svg.appendChild(radarMakeEl('path',{d:d,fill:fill,stroke:stroke,'stroke-width':strokeW||2,opacity:opacity||1}));
+    return pts;
+  }
+
+  function radarDrawDots(svg, vals, cx, cy, rad, angles, color, dotR) {
+    vals.forEach(function(v, i){
+      var pct = Math.min(Math.max(v||0,0),100);
+      var dx = (cx+(pct/100)*rad*Math.cos(angles[i])).toFixed(1);
+      var dy = (cy+(pct/100)*rad*Math.sin(angles[i])).toFixed(1);
+      svg.appendChild(radarMakeEl('circle',{cx:dx,cy:dy,r:dotR||4,fill:color,'stroke':'#fff','stroke-width':'1.5'}));
+    });
+  }
+
+  function renderPLOIndividualRadar() {
+    var sel = document.getElementById('radar-student-select');
+    var sid = sel.value;
+    if (!sid) return;
+    var s = students.filter(function(x){ return x.id===sid; })[0];
+    if (!s) return;
+    var vals = ploData[s.id] || Array(9).fill(0);
+    var safeVals = vals.map(function(v){ return v === null ? 0 : v; });
+
+    var svg = document.getElementById('plo-radar-individual');
+    svg.innerHTML = '';
+    var cx=178, cy=178, rad=130, n=9;
+    var angles = PLO_LABELS.map(function(_,i){ return (i/n)*2*Math.PI - Math.PI/2; });
+
+    radarDrawBase(svg, cx, cy, rad, angles, [20,40,60,80,100]);
+    // KPI polygon (80%)
+    radarDrawPolygon(svg, Array(9).fill(80), cx, cy, rad, angles, 'rgba(30,58,95,0.07)', '#1e3a5f', 1.5, 1);
+    // Student polygon
+    var pts = radarDrawPolygon(svg, safeVals, cx, cy, rad, angles, 'rgba(22,163,74,0.18)', '#16a34a', 2.5, 1);
+    radarDrawDots(svg, safeVals, cx, cy, rad, angles, '#16a34a', 5);
+    radarDrawLabels(svg, cx, cy, rad, angles, PLO_LABELS);
+
+    // Student name label
+    svg.appendChild(radarMakeEl('text',{x:cx,y:cy+rad+44,'text-anchor':'middle','font-size':'12','font-weight':'700',fill:'#1e3a5f'},s.no+' — '+s.nama));
+
+    // Side table
+    var tableHtml = '<table style="width:100%;border-collapse:collapse;font-size:12.5px;">' +
+      '<thead><tr>' +
+        '<th style="background:#1e3a5f;color:#fff;padding:6px 8px;text-align:left;">PLO</th>' +
+        '<th style="background:#1e3a5f;color:#fff;padding:6px 8px;text-align:left;">Penerangan</th>' +
+        '<th style="background:#1e3a5f;color:#fff;padding:6px 8px;text-align:center;">Markah</th>' +
+        '<th style="background:#1e3a5f;color:#fff;padding:6px 8px;text-align:center;">Status</th>' +
+      '</tr></thead><tbody>';
+    safeVals.forEach(function(v, i){
+      var pass = v >= THRESHOLD;
+      tableHtml += '<tr style="border-bottom:1px solid #e5e7eb;">' +
+        '<td style="padding:5px 8px;font-weight:700;">'+PLO_LABELS[i]+'</td>' +
+        '<td style="padding:5px 8px;color:#57606a;">'+PLO_DESC[i]+'</td>' +
+        '<td style="padding:5px 8px;text-align:center;font-weight:700;color:'+(pass?'#166534':'#991b1b')+';">'+v+'%</td>' +
+        '<td style="padding:5px 8px;text-align:center;">' +
+          '<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;background:'+(pass?'#dcfce7':'#fee2e2')+';color:'+(pass?'#166534':'#991b1b')+';">'+(pass?'✅ Lulus':'❌ Gagal')+'</span>' +
+        '</td></tr>';
+    });
+    tableHtml += '</tbody></table>';
+    var avg = Math.round(safeVals.reduce(function(a,b){ return a+b; },0)/safeVals.length*10)/10;
+    var passCount = safeVals.filter(function(v){ return v>=THRESHOLD; }).length;
+    tableHtml += '<div style="margin-top:10px;padding:10px;background:#f7f8fa;border-radius:7px;font-size:12.5px;">' +
+      '<strong>Purata markah:</strong> '+avg+'% &nbsp;|&nbsp; ' +
+      '<strong>PLO lulus:</strong> <span style="color:'+(passCount>=7?'#166534':passCount>=5?'#854d0e':'#991b1b')+';font-weight:700;">'+passCount+'/9</span>' +
+    '</div>';
+    document.getElementById('plo-radar-table').innerHTML = tableHtml;
+  }
+
+  function radarPrev() {
+    var sel = document.getElementById('radar-student-select');
+    if (sel.selectedIndex > 0) { sel.selectedIndex--; renderPLOIndividualRadar(); }
+  }
+  function radarNext() {
+    var sel = document.getElementById('radar-student-select');
+    if (sel.selectedIndex < sel.options.length-1) { sel.selectedIndex++; renderPLOIndividualRadar(); }
+  }
+
+  function renderPLOOverlayRadar() {
+    var svg = document.getElementById('plo-radar-overlay');
+    svg.innerHTML = '';
+    var cx=188, cy=185, rad=140, n=9;
+    var angles = PLO_LABELS.map(function(_,i){ return (i/n)*2*Math.PI - Math.PI/2; });
+
+    radarDrawBase(svg, cx, cy, rad, angles, [20,40,60,80,100]);
+    // KPI polygon
+    radarDrawPolygon(svg, Array(9).fill(80), cx, cy, rad, angles, 'rgba(30,58,95,0.06)', '#1e3a5f', 1.5, 1);
+    radarDrawLabels(svg, cx, cy, rad, angles, PLO_LABELS);
+
+    // Each student
+    var legendHtml = '<div style="font-weight:700;margin-bottom:8px;font-size:12px;color:#1e3a5f;">📋 Legenda Pelajar</div>';
+    students.forEach(function(s, si){
+      var vals = ploData[s.id] || Array(9).fill(0);
+      var safeVals = vals.map(function(v){ return v===null?0:v; });
+      var col = RADAR_COLORS[si % RADAR_COLORS.length];
+      radarDrawPolygon(svg, safeVals, cx, cy, rad, angles, col.replace('#','rgba(').replace(')',',0.07)').replace('rgba(','rgba(#'), col, 1.5, 0.7);
+      // Use hex directly for fill with low opacity via stroke only
+      svg.lastChild.setAttribute('fill', 'none');
+      svg.lastChild.setAttribute('stroke', col);
+      svg.lastChild.setAttribute('stroke-width', '1.8');
+      svg.lastChild.setAttribute('opacity', '0.85');
+      radarDrawDots(svg, safeVals, cx, cy, rad, angles, col, 3);
+      legendHtml += '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">' +
+        '<div style="width:14px;height:3px;background:'+col+';border-radius:2px;flex-shrink:0;"></div>' +
+        '<span style="font-size:11px;color:#57606a;">'+s.no+' '+s.nama+'</span>' +
+      '</div>';
+    });
+    document.getElementById('plo-radar-overlay-legend').innerHTML = legendHtml;
+  }
+
+  function fillRandomPLO() {
+    if (!students.length) { alert('Tiada pelajar.'); return; }
+    students.forEach(function(s){
+      ploData[s.id] = Array(9).fill(0).map(function(){ return Math.floor(40 + Math.random()*55); });
+    });
+    renderPLOTable();
+  }
+
+  /* =========================================================
+     PLO-PEO MATRIX & PEO CALCULATION
+  ========================================================= */
+
+  /** Render jadual matriks PLO-PEO (tetap, bukan input) */
+  function renderPLOPEOMatrix() {
+    var tbody = document.getElementById('plo-peo-matrix-tbody');
+    tbody.innerHTML = PLO_LABELS.map(function(lbl, pi){
+      var row = PLO_PEO_MATRIX[pi];
+      return '<tr>' +
+        '<td class="fw-700">'+lbl+'</td>' +
+        '<td style="text-align:left;color:#57606a;font-size:12px;">'+PLO_DESC[pi]+'</td>' +
+        row.map(function(v, pei){
+          if (v === 1) return '<td style="background:#dcfce7;color:#166534;font-weight:700;font-size:13px;">✔</td>';
+          return '<td style="color:#d1d5db;font-size:12px;">—</td>';
+        }).join('') +
+      '</tr>';
+    }).join('');
+    // show/hide peo-no-plo warning
+    var hasPLO = ploCalcResult !== null;
+    document.getElementById('peo-no-plo').style.display = hasPLO ? 'none' : 'block';
+  }
+
+  /** Kira PEO daripada purata markah PLO yang dipetakan (menggunakan PLO_PEO_MAP tetap) */
+  function calcPEO() {
+    if (!ploCalcResult) {
+      alert('Sila kira PLO dahulu di tab PLO 1–9.');
+      return;
+    }
+    // Untuk setiap PEO, ambil purata nilai r.avg bagi PLO yang dipetakan kepadanya
+    peoCalcResult = PEO_LABELS.map(function(_, pei){
+      var mapped = PLO_PEO_MAP.reduce(function(acc, peoIdx, ploIdx){
+        if (peoIdx === pei) {
+          var r = ploCalcResult[ploIdx];
+          if (r) acc.push(r.avg);
+        }
+        return acc;
+      }, []);
+      if (!mapped.length) return null;
+      var avg = Math.round(mapped.reduce(function(a,b){ return a+b; },0) / mapped.length * 10) / 10;
+      return { avg: avg, kpi: PEO_KPI[pei], mapped: mapped, pei: pei };
+    });
+    renderPEOResult();
+    document.getElementById('peo-result').style.display = 'block';
+  }
+
+  function renderPEOResult() {
+    // Update 4 KPI cards
+    peoCalcResult.forEach(function(r, i){
+      if (!r) return;
+      var pass = r.avg >= r.kpi;
+      document.getElementById('peo'+(i+1)+'-val').textContent = r.avg + '%';
+      var el = document.getElementById('peo'+(i+1)+'-status');
+      el.textContent = pass ? '✅ CAPAI KPI' : '❌ TIDAK CAPAI';
+      el.className = 'kpi-status ' + (pass ? 'status-pass' : 'status-fail');
+    });
+    // Detail table — satu baris per PEO
+    var tbody = document.getElementById('peo-detail-tbody');
+    tbody.innerHTML = peoCalcResult.map(function(r, i){
+      if (!r) return '<tr><td>'+PEO_LABELS[i]+'</td><td colspan="5" class="text-muted">Tiada data PLO dipetakan</td></tr>';
+      var pass = r.avg >= r.kpi;
+      var gap  = (r.avg - r.kpi).toFixed(1);
+      var gapHTML = gap >= 0 ? '<span style="color:#16a34a">+'+gap+'%</span>' : '<span style="color:#dc2626">'+gap+'%</span>';
+      // PLO yang menyumbang kepada PEO ini
+      var ploContrib = PLO_PEO_MAP.reduce(function(acc, peoIdx, ploIdx){
+        if (peoIdx === i) acc.push(PLO_LABELS[ploIdx]);
+        return acc;
+      }, []).join(', ');
+      return '<tr>' +
+        '<td class="fw-700">'+PEO_LABELS[i]+'<br><small class="text-muted">'+PEO_DESC[i]+'</small></td>' +
+        '<td style="font-size:12px;">'+ploContrib+'</td>' +
+        '<td class="fw-700" style="color:'+(pass?'#166534':'#991b1b')+';">'+r.avg+'%</td>' +
+        '<td>'+r.kpi+'%</td>' +
+        '<td><span class="kpi-status '+(pass?'status-pass':'status-fail')+'">'+(pass?'✅ CAPAI':'❌ TIDAK CAPAI')+'</span></td>' +
+        '<td>'+gapHTML+'</td>' +
+      '</tr>';
+    }).join('');
+    renderPEOBarChart();
+  }
+
+  function renderPEOBarChart() {
+    var container = document.getElementById('peo-bar-chart');
+    var svgH = 200, scaleH = 155, bw = 70, gap = 40;
+    var n = 4, svgW = n*(bw+gap)+gap+60;
+    var svg = '<svg viewBox="0 0 '+svgW+' '+(svgH+40)+'" style="width:100%;max-width:600px;height:'+(svgH+40)+'px;display:block;margin:auto;">';
+    peoCalcResult.forEach(function(r, i){
+      if (!r) return;
+      var x = gap + i*(bw+gap);
+      var barH = (r.avg/100)*scaleH;
+      var kpiH = (r.kpi/100)*scaleH;
+      var col = r.avg >= r.kpi ? '#16a34a' : '#dc2626';
+      svg += '<rect x="'+x+'" y="'+(svgH-barH)+'" width="'+bw+'" height="'+barH+'" fill="'+col+'" rx="5" opacity="0.85"/>';
+      svg += '<text x="'+(x+bw/2)+'" y="'+(svgH-barH-5)+'" text-anchor="middle" font-size="13" fill="'+col+'" font-weight="bold">'+r.avg+'%</text>';
+      var kpiY = svgH - kpiH;
+      svg += '<line x1="'+(x-8)+'" y1="'+kpiY+'" x2="'+(x+bw+8)+'" y2="'+kpiY+'" stroke="#1e3a5f" stroke-width="2" stroke-dasharray="5,3"/>';
+      svg += '<text x="'+(x+bw+10)+'" y="'+(kpiY+4)+'" font-size="10" fill="#1e3a5f">KPI '+r.kpi+'%</text>';
+      svg += '<text x="'+(x+bw/2)+'" y="'+(svgH+16)+'" text-anchor="middle" font-size="12" fill="#57606a" font-weight="600">'+PEO_LABELS[i]+'</text>';
+    });
+    svg += '</svg>';
+    container.innerHTML = svg;
+  }
+
+  /* =========================================================
+     GAP ANALYSIS
+  ========================================================= */
+  function renderGap() {
+    var hasData = ploCalcResult || peoCalcResult;
+    document.getElementById('gap-no-data').style.display  = hasData ? 'none' : 'block';
+    document.getElementById('gap-content').style.display = hasData ? 'block' : 'none';
+    if (!hasData) return;
+
+    // PLO bars
+    if (ploCalcResult) {
+      var html = '';
+      ploCalcResult.forEach(function(r, i){
+        if (!r) return;
+        var gap = r.pct - PLO_KPI;
+        var col = gap >= 0 ? 'bar-pass' : 'bar-fail';
+        var fillW = Math.min(r.pct, 100);
+        var gapHTML = gap >= 0
+          ? '<span style="color:#16a34a">+'+gap.toFixed(1)+'%</span>'
+          : '<span style="color:#dc2626">'+gap.toFixed(1)+'%</span>';
+        html += '<div class="gap-row">' +
+          '<div class="gap-label">'+PLO_LABELS[i]+'</div>' +
+          '<div class="gap-bar-wrap">' +
+            '<div class="gap-bar-fill '+col+'" style="width:'+fillW+'%;">'+r.pct+'%</div>' +
+            '<div class="gap-kpi-line" style="left:'+PLO_KPI+'%;"></div>' +
+          '</div>' +
+          '<div class="gap-info">'+gapHTML+'</div>' +
+        '</div>';
+      });
+      document.getElementById('gap-plo-bars').innerHTML = html;
+    }
+
+    // PEO bars
+    if (peoCalcResult) {
+      var html2 = '';
+      peoCalcResult.forEach(function(r, i){
+        if (!r) return;
+        var gap = r.avg - r.kpi;
+        var col = gap >= 0 ? 'bar-pass' : 'bar-fail';
+        var fillW = Math.min(r.avg, 100);
+        var gapHTML = gap >= 0
+          ? '<span style="color:#16a34a">+'+gap.toFixed(1)+'%</span>'
+          : '<span style="color:#dc2626">'+gap.toFixed(1)+'%</span>';
+        html2 += '<div class="gap-row">' +
+          '<div class="gap-label">'+PEO_LABELS[i]+'</div>' +
+          '<div class="gap-bar-wrap">' +
+            '<div class="gap-bar-fill '+col+'" style="width:'+fillW+'%;">'+r.avg+'%</div>' +
+            '<div class="gap-kpi-line" style="left:'+r.kpi+'%;"></div>' +
+          '</div>' +
+          '<div class="gap-info">'+gapHTML+'<br><small class="text-muted">KPI: '+r.kpi+'%</small></div>' +
+        '</div>';
+      });
+      document.getElementById('gap-peo-bars').innerHTML = html2;
+    }
+
+    // Action needed
+    var actions = [];
+    if (ploCalcResult) ploCalcResult.forEach(function(r, i){ if (r && r.pct < PLO_KPI) actions.push({label: PLO_LABELS[i]+' — '+PLO_DESC[i], gap: (r.pct-PLO_KPI).toFixed(1), type:'PLO'}); });
+    if (peoCalcResult) peoCalcResult.forEach(function(r, i){ if (r && r.avg < r.kpi) actions.push({label: PEO_LABELS[i], gap: (r.avg-r.kpi).toFixed(1), type:'PEO'}); });
+    var actionDiv = document.getElementById('gap-action-list');
+    if (!actions.length) {
+      actionDiv.innerHTML = '<div class="info-box info-green">🎉 Tahniah! Semua PLO dan PEO telah mencapai KPI yang ditetapkan.</div>';
+    } else {
+      actionDiv.innerHTML = '<div class="info-box info-red" style="margin-bottom:12px;">⚠️ '+actions.length+' item memerlukan tindakan CQI segera.</div>' +
+        actions.map(function(a){
+          return '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #fca5a5;border-radius:7px;background:#fff5f5;margin-bottom:6px;">' +
+            '<span style="font-size:18px;">🔴</span>' +
+            '<div><strong>'+a.label+'</strong><br>' +
+            '<span style="color:#991b1b;">Jurang: '+a.gap+'%</span> &nbsp;|&nbsp; '+
+            '<span style="font-size:10px;background:#fee2e2;color:#991b1b;padding:1px 8px;border-radius:20px;font-weight:600;">'+a.type+'</span><br>' +
+            '<small class="text-muted">Rujuk tab Checklist CQI untuk langkah penambahbaikan.</small></div>' +
+          '</div>';
+        }).join('');
+    }
+
+    drawRadar();
+  }
+
+  function drawRadar() {
+    if (!ploCalcResult) return;
+    var svg = document.getElementById('radar-svg');
+    var cx = 220, cy = 210, rad = 160, n = 9;
+    var angles = PLO_LABELS.map(function(_, i){ return (i / n) * 2 * Math.PI - Math.PI / 2; });
+    svg.innerHTML = '';
+
+    function mkEl(tag, attrs) {
+      var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      Object.keys(attrs).forEach(function(k){ el.setAttribute(k, attrs[k]); });
+      return el;
+    }
+
+    // Grid polygons
+    [20,40,60,80,100].forEach(function(v){
+      var pts = angles.map(function(a){ return [(cx + (v/100)*rad*Math.cos(a)).toFixed(1), (cy + (v/100)*rad*Math.sin(a)).toFixed(1)]; });
+      var d = pts.map(function(p, i){ return (i?'L':'M')+p[0]+','+p[1]; }).join(' ')+'Z';
+      svg.appendChild(mkEl('path',{ d:d, fill:'none', stroke: v===80?'#1e3a5f':'#e5e7eb', 'stroke-width': v===80?'2':'1', 'stroke-dasharray': v===80?'5,3':'' }));
+      svg.appendChild(mkEl('text',{ x:cx+3, y:cy-(v/100)*rad+3, 'font-size':'9', fill:'#94a3b8', 'text-anchor':'start' })).textContent = v+'%';
+    });
+
+    // Axes & labels
+    angles.forEach(function(a, i){
+      var lx = (cx + rad * Math.cos(a)).toFixed(1), ly = (cy + rad * Math.sin(a)).toFixed(1);
+      svg.appendChild(mkEl('line',{ x1:cx, y1:cy, x2:lx, y2:ly, stroke:'#e5e7eb', 'stroke-width':'1' }));
+      var lblx = (cx + (rad+24) * Math.cos(a)).toFixed(1), lbly = (cy + (rad+24) * Math.sin(a)).toFixed(1);
+      var lbl = mkEl('text',{ x:lblx, y:lbly, 'text-anchor':'middle', 'dominant-baseline':'middle', 'font-size':'11', 'font-weight':'600', fill:'#1e3a5f' });
+      lbl.textContent = PLO_LABELS[i];
+      svg.appendChild(lbl);
+    });
+
+    // KPI polygon
+    var kpiPts = angles.map(function(a){ return [(cx+(PLO_KPI/100)*rad*Math.cos(a)).toFixed(1),(cy+(PLO_KPI/100)*rad*Math.sin(a)).toFixed(1)]; });
+    svg.appendChild(mkEl('path',{ d: kpiPts.map(function(p,i){ return (i?'L':'M')+p[0]+','+p[1]; }).join(' ')+'Z', fill:'rgba(30,58,95,0.06)', stroke:'#1e3a5f', 'stroke-width':'2', 'stroke-dasharray':'6,3' }));
+
+    // Actual polygon
+    var actPts = ploCalcResult.map(function(r, i){
+      var pct = r ? r.pct : 0;
+      return [(cx+(pct/100)*rad*Math.cos(angles[i])).toFixed(1), (cy+(pct/100)*rad*Math.sin(angles[i])).toFixed(1)];
+    });
+    svg.appendChild(mkEl('path',{ d: actPts.map(function(p,i){ return (i?'L':'M')+p[0]+','+p[1]; }).join(' ')+'Z', fill:'rgba(22,163,74,0.15)', stroke:'#16a34a', 'stroke-width':'2.5' }));
+
+    // Dots
+    ploCalcResult.forEach(function(r, i){
+      var pct = r ? r.pct : 0;
+      var col = r && r.pct >= PLO_KPI ? '#16a34a' : '#dc2626';
+      svg.appendChild(mkEl('circle',{ cx:(cx+(pct/100)*rad*Math.cos(angles[i])).toFixed(1), cy:(cy+(pct/100)*rad*Math.sin(angles[i])).toFixed(1), r:'5', fill:col }));
+    });
+
+    // Legend
+    var legends = [{c:'#16a34a',t:'Pencapaian Sebenar'},{c:'#1e3a5f',t:'KPI (80%)'}];
+    legends.forEach(function(l, i){
+      svg.appendChild(mkEl('rect',{ x:110+i*140, y:410, width:14, height:14, fill:l.c, rx:'3' }));
+      var lt = mkEl('text',{ x:128+i*140, y:422, 'font-size':'11', fill:'#57606a' });
+      lt.textContent = l.t; svg.appendChild(lt);
+    });
+  }
+
+  /* =========================================================
+     CQI
+  ========================================================= */
+  function updateCQI() {
+    var all     = document.querySelectorAll('input[id^="c"]');
+    var checked = document.querySelectorAll('input[id^="c"]:checked');
+    var total   = all.length, done = checked.length;
+    var pct     = total ? Math.round((done / total) * 100) : 0;
+    var fill    = document.getElementById('cqi-fill');
+    fill.style.width = pct + '%';
+    fill.style.background = pct >= 80 ? '#16a34a' : pct >= 50 ? '#ca8a04' : '#1e3a5f';
+    document.getElementById('cqi-pct').textContent = done + ' / ' + total + ' item (' + pct + '%)';
+  }
+
+  function checkAll()   { document.querySelectorAll('input[id^="c"]').forEach(function(c){ c.checked = true; }); updateCQI(); }
+  function uncheckAll() { document.querySelectorAll('input[id^="c"]').forEach(function(c){ c.checked = false; }); updateCQI(); }
+
+  /* =========================================================
+     BATCH ANALYSIS
+  ========================================================= */
+
+  /** Return unique batch keys sorted by sesi masuk */
+  function getBatches() {
+    var seen = {}, keys = [];
+    students.forEach(function(s){
+      var k = s.batch || '—';
+      if (!seen[k]) { seen[k] = true; keys.push(k); }
+    });
+    return keys.sort();
+  }
+
+  /** Compute PLO results for a subset of students */
+  function calcPLOForStudents(subset) {
+    return PLO_LABELS.map(function(_, pi){
+      var vals = subset.map(function(s){ return ploData[s.id] ? ploData[s.id][pi] : null; })
+                       .filter(function(v){ return v !== null; });
+      if (!vals.length) return null;
+      var pass = vals.filter(function(v){ return v >= THRESHOLD; }).length;
+      var pct  = Math.round((pass / vals.length) * 1000) / 10;
+      var avg  = Math.round(vals.reduce(function(a,b){ return a+b; },0) / vals.length * 10) / 10;
+      return { pct: pct, avg: avg };
+    });
+  }
+
+  function renderBatchPage() {
+    var batches = getBatches();
+    // Check if any batch has PLO data
+    var hasPLO = students.some(function(s){ return ploData[s.id] && ploData[s.id].some(function(v){ return v !== null; }); });
+
+    if (!batches.length || !hasPLO) {
+      document.getElementById('batch-no-data').style.display = 'block';
+      document.getElementById('batch-content').style.display = 'none';
+      return;
+    }
+    document.getElementById('batch-no-data').style.display = 'none';
+    document.getElementById('batch-content').style.display = 'block';
+
+    // Selector buttons
+    var btnHtml = batches.map(function(b){
+      return '<button class="batch-btn'+(activeBatch===b?' active':'')+'" onclick="selectBatch(\''+b.replace(/'/g,"\\'")+'\')">' +
+        '📦 ' + b + ' <small style="opacity:.7;">('+students.filter(function(s){ return s.batch===b; }).length+' org)</small>' +
+      '</button>';
+    }).join('');
+    document.getElementById('batch-selector-btns').innerHTML = btnHtml;
+
+    // Summary table — rows = batches, cols = PLO1-9
+    var thead = document.getElementById('batch-summary-thead');
+    thead.innerHTML = '<th>Batch</th><th>Pelajar</th>' + PLO_LABELS.map(function(l){ return '<th>'+l+'</th>'; }).join('') + '<th>PLO Capai KPI</th>';
+
+    var tbody = document.getElementById('batch-summary-tbody');
+    tbody.innerHTML = batches.map(function(b){
+      var sub = students.filter(function(s){ return s.batch === b; });
+      var res = calcPLOForStudents(sub);
+      var capai = res.filter(function(r){ return r && r.pct >= PLO_KPI; }).length;
+      return '<tr>' +
+        '<td><span class="batch-pill">'+b+'</span></td>' +
+        '<td>'+sub.length+'</td>' +
+        res.map(function(r){
+          if (!r) return '<td class="text-muted">—</td>';
+          var pass = r.pct >= PLO_KPI;
+          return '<td class="'+(pass?'cell-pass':'cell-fail')+'">'+r.pct+'%</td>';
+        }).join('') +
+        '<td class="fw-700">'+ capai + '/9</td>' +
+      '</tr>';
+    }).join('');
+
+    // Default: select first batch if none active
+    if (!activeBatch || batches.indexOf(activeBatch) === -1) activeBatch = batches[0];
+    renderBatchDetail(activeBatch);
+
+    // Trend comparison (if ≥ 2 batches with data)
+    if (batches.length >= 2) {
+      renderBatchTrendChart(batches);
+      document.getElementById('batch-trend-card').style.display = 'block';
+    } else {
+      document.getElementById('batch-trend-card').style.display = 'none';
+    }
+  }
+
+  function selectBatch(b) {
+    activeBatch = b;
+    // Update button active state
+    document.querySelectorAll('#batch-selector-btns .batch-btn').forEach(function(btn){
+      btn.classList.toggle('active', btn.textContent.indexOf(b) !== -1);
+    });
+    renderBatchDetail(b);
+  }
+
+  function renderBatchDetail(b) {
+    var sub = students.filter(function(s){ return s.batch === b; });
+    var res = calcPLOForStudents(sub);
+
+    document.getElementById('batch-detail-card').style.display = 'block';
+    document.getElementById('batch-detail-title').textContent = '📦 Detail Batch: ' + b + ' (' + sub.length + ' pelajar)';
+
+    // KPI summary cards (first 4 PLO as preview)
+    var kpiHtml = '';
+    var capaiCount = res.filter(function(r){ return r && r.pct >= PLO_KPI; }).length;
+    var totalWithData = res.filter(function(r){ return r !== null; }).length;
+    kpiHtml += '<div class="kpi-card"><div class="kpi-label">Jumlah Pelajar</div><div class="kpi-val">'+sub.length+'</div><div class="kpi-kpi">dalam batch ini</div></div>';
+    kpiHtml += '<div class="kpi-card"><div class="kpi-label">PLO Capai KPI</div><div class="kpi-val" style="color:'+(capaiCount===totalWithData?'#16a34a':'#dc2626')+'">'+capaiCount+'/'+totalWithData+'</div><div class="kpi-kpi">PLO ≥ 80%</div></div>';
+    var avgOverall = res.filter(function(r){ return r; }).map(function(r){ return r.pct; });
+    var overallPct = avgOverall.length ? Math.round(avgOverall.reduce(function(a,b){ return a+b; },0)/avgOverall.length*10)/10 : 0;
+    kpiHtml += '<div class="kpi-card"><div class="kpi-label">Purata PLO</div><div class="kpi-val" style="color:'+(overallPct>=PLO_KPI?'#16a34a':'#dc2626')+'">'+overallPct+'%</div><div class="kpi-kpi">purata semua PLO</div></div>';
+    var progs = {};
+    sub.forEach(function(s){ progs[s.prog] = (progs[s.prog]||0)+1; });
+    var progStr = Object.keys(progs).map(function(k){ return k+': '+progs[k]; }).join(', ');
+    kpiHtml += '<div class="kpi-card"><div class="kpi-label">Komposisi Program</div><div class="kpi-val" style="font-size:14px;margin-top:6px;">'+progStr+'</div><div class="kpi-kpi">pelajar</div></div>';
+    document.getElementById('batch-kpi-cards').innerHTML = kpiHtml;
+
+    // Bar chart
+    var container = document.getElementById('batch-bar-chart');
+    var svgH = 200, scaleH = 160, bw = 44, gapX = 20;
+    var n = 9, totalW = n*(bw+gapX)+gapX+40;
+    var svg = '<svg viewBox="0 0 '+Math.max(totalW,600)+' '+(svgH+30)+'" style="width:100%;height:'+(svgH+30)+'px;">';
+    res.forEach(function(r, i){
+      if (!r) return;
+      var x = gapX + i*(bw+gapX);
+      var barH = (r.pct/100)*scaleH;
+      var col = r.pct >= PLO_KPI ? '#16a34a' : '#dc2626';
+      svg += '<rect x="'+x+'" y="'+(svgH-barH)+'" width="'+bw+'" height="'+barH+'" fill="'+col+'" rx="4"/>';
+      svg += '<text x="'+(x+bw/2)+'" y="'+(svgH-barH-4)+'" text-anchor="middle" font-size="11" fill="'+col+'" font-weight="bold">'+r.pct+'%</text>';
+      svg += '<text x="'+(x+bw/2)+'" y="'+(svgH+16)+'" text-anchor="middle" font-size="10.5" fill="#57606a">'+PLO_LABELS[i]+'</text>';
+    });
+    var kpiY = svgH - (PLO_KPI/100)*scaleH;
+    svg += '<line x1="0" y1="'+kpiY+'" x2="'+Math.max(totalW,600)+'" y2="'+kpiY+'" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6,4"/>';
+    svg += '<text x="6" y="'+(kpiY-4)+'" font-size="10" fill="#94a3b8" font-weight="bold">KPI '+PLO_KPI+'%</text>';
+    svg += '</svg>';
+    container.innerHTML = svg;
+
+    // Student list in batch
+    document.getElementById('batch-student-tbody').innerHTML = sub.map(function(s, i){
+      return '<tr>' +
+        '<td>'+(i+1)+'</td><td><strong>'+s.no+'</strong></td><td>'+s.nama+'</td><td>'+s.prog+'</td>' +
+        '<td>'+s.sesiMasuk+'</td><td>'+s.sesiTamat+'</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  /* Multi-batch trend: grouped bar chart per PLO, one bar per batch */
+  function renderBatchTrendChart(batches) {
+    var container = document.getElementById('batch-trend-chart');
+    var COLORS = ['#1e3a5f','#16a34a','#dc2626','#d97706','#7c3aed','#0891b2'];
+    var batchResults = batches.map(function(b){
+      var sub = students.filter(function(s){ return s.batch===b; });
+      return { batch: b, res: calcPLOForStudents(sub) };
+    });
+
+    var svgH = 220, scaleH = 170;
+    var bw = Math.max(8, Math.floor(30/batches.length));
+    var groupGap = 10, batchGap = 2;
+    var groupW = batches.length * (bw + batchGap) + groupGap;
+    var totalW = 9 * groupW + groupGap + 30;
+    var svg = '<svg viewBox="0 0 '+Math.max(totalW,600)+' '+(svgH+55)+'" style="width:100%;height:'+(svgH+55)+'px;">';
+
+    // KPI line
+    var kpiY = svgH - (PLO_KPI/100)*scaleH;
+    svg += '<line x1="0" y1="'+kpiY+'" x2="'+Math.max(totalW,600)+'" y2="'+kpiY+'" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,4"/>';
+    svg += '<text x="4" y="'+(kpiY-3)+'" font-size="9" fill="#94a3b8">KPI '+PLO_KPI+'%</text>';
+
+    PLO_LABELS.forEach(function(lbl, pi){
+      var gx = groupGap + pi * groupW;
+      batchResults.forEach(function(br, bi){
+        var r = br.res[pi];
+        if (!r) return;
+        var x = gx + bi*(bw+batchGap);
+        var barH = (r.pct/100)*scaleH;
+        var col = COLORS[bi % COLORS.length];
+        svg += '<rect x="'+x+'" y="'+(svgH-barH)+'" width="'+bw+'" height="'+barH+'" fill="'+col+'" rx="2" opacity="0.85"/>';
+        if (bw >= 14) svg += '<text x="'+(x+bw/2)+'" y="'+(svgH-barH-3)+'" text-anchor="middle" font-size="9" fill="'+col+'" font-weight="bold">'+r.pct+'%</text>';
+      });
+      svg += '<text x="'+(gx+groupW/2-groupGap/2)+'" y="'+(svgH+14)+'" text-anchor="middle" font-size="10" fill="#57606a">'+lbl+'</text>';
+    });
+
+    // Legend
+    batches.forEach(function(b, bi){
+      var lx = 10 + bi * 160;
+      svg += '<rect x="'+lx+'" y="'+(svgH+28)+'" width="12" height="12" fill="'+COLORS[bi%COLORS.length]+'" rx="2"/>';
+      svg += '<text x="'+(lx+16)+'" y="'+(svgH+39)+'" font-size="10" fill="#57606a">'+b+'</text>';
+    });
+    svg += '</svg>';
+    container.innerHTML = svg;
+  }
+
+  // Init
+  updateCQI();
+
+  // -------------------------------------------------------
+  // Dedahkan data & fungsi ke window supaya pdf-import.js
+  // boleh mengaksesnya (semua var di atas adalah scope lokal)
+  // -------------------------------------------------------
+  window.students         = students;
+  window.ploData          = ploData;
+  window.renderStudentList = renderStudentList;
+  window.renderPLOTable    = renderPLOTable;
+  window.renderBatchPage   = renderBatchPage;
+  window.makeBatchKey      = makeBatchKey;
+
+  // Semak PDF.js tersedia
+  window.addEventListener('load', function() {
+    var el = document.getElementById('pdfjs-status');
+    if (!el) return;
+    if (window.pdfjsLib) {
+      el.innerHTML = '<span style="color:#166534;">✅ PDF.js dimuatkan — fungsi import PDF sedia.</span>';
+    } else {
+      el.innerHTML = '<span style="color:#854d0e;">⚠️ PDF.js tidak dimuatkan (tiada internet?). Fungsi import PDF memerlukan sambungan internet untuk CDN.</span>';
+    }
+  });
+</script>
+<!-- Modul Import PDF Lampiran H -->
+<script src="pdf-import.js"></script>
+</body>
+</html>
