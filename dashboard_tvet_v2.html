@@ -284,7 +284,7 @@
     <div id="plo-no-student" class="info-box info-blue mt-4">ℹ️ Tiada pelajar. Sila tambah pelajar di tab <strong>Data Pelajar</strong>.</div>
     <div class="btn-bar">
       <button class="btn btn-primary" onclick="calcPLO()">🔄 Kira & Bandingkan dengan KPI</button>
-      <button class="btn btn-warn btn-sm" onclick="fillRandomPLO()">🎲 Isi Data Rawak</button>
+      
     </div>
   </div>
 
@@ -801,8 +801,8 @@
     document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
     btn.classList.add('active');
     document.getElementById('page-'+t).classList.add('active');
-    if (t === 'plo') renderPLOTable();
-    if (t === 'peo') renderPLOPEOMatrix();
+    if (t === 'plo') { renderPLOTable(); if(students.length) calcPLO(); }
+    if (t === 'peo') { renderPLOPEOMatrix(); if(students.length) { renderPLOTable(); calcPLO(); calcPEO(); } }
     if (t === 'batch') renderSesiPage();
     if (t === 'gap') renderGap();
     if (t === 'kohort') renderKohort();
@@ -838,7 +838,7 @@
   }
 
   function removeStudent(id) {
-    students = students.filter(function(s){ return s.id !== id; });
+    for (var idx=students.length-1;idx>=0;idx--) if(students[idx].id===id) students.splice(idx,1);
     delete ploData[id];
     ploCalcResult = null; peoCalcResult = null;
     renderStudentList();
@@ -939,26 +939,29 @@
      PLO TABLE
   ========================================================= */
   function renderPLOTable() {
+    // PLO yang telah diimport sentiasa bersumberkan ploData[id] pelajar.
     var tbody = document.getElementById('plo-tbody');
     document.getElementById('plo-no-student').style.display = students.length ? 'none' : 'block';
     tbody.innerHTML = students.map(function(s){
-      var vals = ploData[s.id] || Array(9).fill('');
+      var vals = ploData[s.id] || Array(9).fill(null);
       return '<tr>' +
         '<td><strong>'+s.no+'</strong><br><small class="text-muted">'+s.nama+'</small></td>' +
         vals.map(function(v,i){
-          return '<td><input type="number" min="0" max="100" value="'+v+'" id="plo-'+s.id+'-'+i+'" placeholder="—"></td>';
+          return '<td><input type="number" min="0" max="100" value="'+(v===null||v===undefined?'':v)+'" id="plo-'+s.id+'-'+i+'" placeholder="—"></td>';
         }).join('') +
       '</tr>';
     }).join('');
   }
 
   function calcPLO() {
-    if (!students.length) { alert('Tiada pelajar. Tambah pelajar dahulu.'); return; }
+    if (!students.length) { alert('Tiada pelajar. Import Lampiran H dahulu.'); return; }
     students.forEach(function(s){
-      ploData[s.id] = PLO_LABELS.map(function(_, i){
-        var el = document.getElementById('plo-'+s.id+'-'+i);
-        var v = el ? parseFloat(el.value) : NaN;
-        return isNaN(v) ? null : v;
+      var prior=Array.isArray(ploData[s.id]) ? ploData[s.id] : Array(9).fill(null);
+      ploData[s.id] = PLO_LABELS.map(function(_,i){
+        var el=document.getElementById('plo-'+s.id+'-'+i);
+        if(!el) return prior[i]===undefined?null:prior[i];
+        var raw=el.value.trim(), n=Number(raw);
+        return raw!=='' && Number.isFinite(n) && n>=0 && n<=100 ? n : null;
       });
     });
     ploCalcResult = PLO_LABELS.map(function(_, pi){
@@ -1307,13 +1310,7 @@
     }).join('');
   }
 
-  function fillRandomPLO() {
-    if (!students.length) { alert('Tiada pelajar.'); return; }
-    students.forEach(function(s){
-      ploData[s.id] = Array(9).fill(0).map(function(){ return Math.floor(40 + Math.random()*55); });
-    });
-    renderPLOTable();
-  }
+  function fillRandomPLO() { alert('Data rawak dinyahaktifkan. Sila gunakan nilai PLO sebenar daripada Lampiran H.'); }
 
   /* =========================================================
      PLO-PEO MATRIX & PEO CALCULATION
