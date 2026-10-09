@@ -34,30 +34,33 @@
     return '';
   }
   function extractPLO(text) {
-    var out = Array(9).fill(null);
-    var lines = text.split(/\n/).map(norm);
-    for(var i=0;i<lines.length;i++) {
-      // Anchored entries such as "PLO 1 78.5%" or "PLO1: 78.5".
-      var m=lines[i].match(/^\s*PLO\s*([1-9])\s*[:=|\-]?\s*(\d{1,3}(?:[.,]\d+)?)\s*%?\s*$/i);
-      if(m) { var n=Number(m[2].replace(',','.')); if(n>=0 && n<=100) out[Number(m[1])-1]=n; }
-      var solo=lines[i].match(/^\s*PLO\s*([1-9])\s*[:=|\-]?\s*$/i);
-      if(solo && i+1<lines.length) {
-        var value=lines[i+1].match(/^\s*(\d{1,3}(?:[.,]\d+)?)\s*%?\s*$/);
-        if(value){ var v=Number(value[1].replace(',','.')); if(v>=0 && v<=100)out[Number(solo[1])-1]=v; }
+    var out=Array(9).fill(null);
+    var lines=text.split(/\n/).map(norm);
+    function ninePercentages(line) {
+      // Values occur in the summary row; never mistake fraction formula "(...×100%)" for PLO scores.
+      if (/[×x]\s*100\s*%/i.test(line)) return null;
+      var matches=Array.from(line.matchAll(/(\d{1,3}(?:[.,]\d+)?)\s*%/g),
+        function(m){return Number(m[1].replace(',','.'));});
+      return matches.length===9 && matches.every(function(n){return Number.isFinite(n)&&n>=0&&n<=100;})?matches:null;
+    }
+    // Official CCMS Lampiran H places nine results on/just above "PURATA PLO KESELURUHAN".
+    for(var i=lines.length-1;i>=0;i--){
+      if(!/PURATA\s+PLO\s+KESELURUHAN/i.test(lines[i]))continue;
+      for(var j of [0,-1,1,-2,2,-3,3]){
+        if(i+j>=0 && i+j<lines.length){
+          var p=ninePercentages(lines[i+j]);
+          if(p)return p;
+        }
       }
     }
-    // Table variant: header PLO1 ... PLO9, followed by 9 numeric columns.
-    if(out.every(function(v){return v===null;})){
-      for(var k=0;k<lines.length-1;k++){
-        if((lines[k].match(/PLO\s*[1-9]/ig)||[]).length>=7){
-          var all=[];
-          for(var j=k+1;j<Math.min(lines.length,k+4);j++){
-            var nums=lines[j].match(/\b\d{1,3}(?:[.,]\d+)?\b/g)||[];
-            all=all.concat(nums.map(function(v){return Number(v.replace(',','.'));}));
-            if(all.length>=9)break;
-          }
-          if(all.length===9 && all.every(function(v){return v>=0 && v<=100;})){out=all;break;}
-        }
+    // Alternative accessible-text variants, e.g. PLO1: 85.4%.
+    for(var k=0;k<lines.length;k++){
+      var m=lines[k].match(/^\s*PLO\s*([1-9])\s*[:=|\-]?\s*(\d{1,3}(?:[.,]\d+)?)\s*%?\s*$/i);
+      if(m){var v=Number(m[2].replace(',','.'));if(v>=0&&v<=100)out[Number(m[1])-1]=v;}
+      var solo=lines[k].match(/^\s*PLO\s*([1-9])\s*[:=|\-]?\s*$/i);
+      if(solo && k+1<lines.length) {
+        var val=lines[k+1].match(/^\s*(\d{1,3}(?:[.,]\d+)?)\s*%?\s*$/);
+        if(val){var n=Number(val[1].replace(',','.'));if(n>=0&&n<=100)out[Number(solo[1])-1]=n;}
       }
     }
     return out;
@@ -80,8 +83,13 @@
     var no=matchLine(text,['NO\\.?\\s*(?:PENDAFTARAN|PENDAF|MATRIK|PELAJAR)','NO\\.?\\s*ID','REGISTRATION\\s*(?:NO|NUMBER)']);
     if(!no){var id=text.match(/\bT\d{2}SKE\d{2}[A-Z]?\d{3,6}\b/i);if(id)no=id[0];}
     var kelas=matchLine(text,['KELAS','CLASS']);
-    var semester=matchLine(text,['SEMESTER','SEM\\.?']);
-    var sesi=matchLine(text,['SESI\\s*(?:KELUAR|TAMAT|PENGAJIAN)?','ACADEMIC\\s*SESSION']);
+    var semesterSesi=matchLine(text,['SEMESTER\s*\/\s*SESI']);
+    var semester=matchLine(text,['SEMESTER','SEM\.?']);
+    var sesi=matchLine(text,['SESI\s*(?:KELUAR|TAMAT|PENGAJIAN)?','ACADEMIC\s*SESSION']);
+    var combined=semesterSesi.match(/^\s*(\d+)\s*\/\s*(S[12]\d{4})\b/i);
+    if(combined) {semester=combined[1]; sesi=combined[2];}
+    var sessionMatch=sesi.match(/^S([12])(\d{2})(\d{2})$/i);
+    if(sessionMatch) sesi='Sesi '+(sessionMatch[1]==='1'?'I':'II')+' 20'+sessionMatch[2]+'/20'+sessionMatch[3];
     var prog=matchLine(text,['PROGRAM(?:ME)?','KOD\\s*PROGRAM']);
     // A label may inadvertently match a heading; user must review each value.
     if (!name) name=filename.replace(/\.pdf$/i,'').replace(/^Lampiran\s*H\s*[-–_]\s*/i,'').replace(/[_-]/g,' ');
@@ -103,9 +111,10 @@
       var plo=r.plo.map(function(v,j){return '<td style="padding:4px;"><input aria-label="PLO'+(j+1)+'" data-row="'+i+'" data-plo="'+j+'" type="number" min="0" max="100" step="0.01" value="'+(v===null?'':v)+'" style="width:63px;padding:4px;border:1px solid #d1d5db;border-radius:3px;"></td>';}).join('');
       var vals=r.plo.filter(function(v){return typeof v==='number' && Number.isFinite(v);});
       var avg=vals.length?(vals.reduce(function(a,b){return a+b;},0)/vals.length).toFixed(1)+'%':'—';
+      var ploComplete=vals.length===9;
       return '<tr><td><input type="checkbox" data-select="'+i+'" '+(r.selected?'checked':'')+'></td>'+
         editable+plo+'<td style="padding:5px;" id="imp-avg-'+i+'">'+avg+'</td>'+
-        '<td style="padding:5px;color:'+(existing?'#b45309':'#166534')+';">'+(existing?'Sudah wujud':'Semak dahulu')+'</td>'+
+        '<td style="padding:5px;color:'+(existing?'#b45309':ploComplete?'#166534':'#b91c1c')+';">'+(existing?'Sudah wujud':ploComplete?'9/9 PLO ✓':vals.length+'/9 PLO — semak PDF')+'</td>'+
         '<td style="padding:5px;font-size:11px;">'+safe(r.source)+'</td></tr>';
     }).join('');
     box.style.display=preview.length?'block':'none';
@@ -125,6 +134,8 @@
         data.students.forEach(function(s){ if(s && s.id && s.no && !window.students.some(function(x){return x.id===s.id;}))window.students.push(s); });
         Object.keys(data.ploData).forEach(function(k){window.ploData[k]=data.ploData[k];});
         window.renderStudentList();
+        if(typeof window.renderPLOTable==='function')window.renderPLOTable();
+        if(window.students.length && typeof window.calcPLO==='function')window.calcPLO();
       }
     }catch(e){notice('Data tempatan tidak dapat dibaca.','#b91c1c');}
   }
@@ -161,9 +172,10 @@
     },
     saveSelected:function(){
       var selected=preview.filter(function(r){return r.selected;});
-      var added=0,skipped=0,missing=0;
+      var added=0,skipped=0,missing=0,incomplete=0;
       selected.forEach(function(r){
         if(!norm(r.no)||!norm(r.nama)){missing++;return;}
+        if(!Array.isArray(r.plo) || r.plo.filter(function(v){return Number.isFinite(v)&&v>=0&&v<=100;}).length!==9){incomplete++;return;}
         if(window.students.some(function(s){return String(s.no).toUpperCase()===String(r.no).toUpperCase();})){skipped++;return;}
         function clean(s){return norm(s).replace(/[<>]/g,'');}
         var id='pdf-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
@@ -176,7 +188,9 @@
       });
       window.renderStudentList();
       persist();
-      notice(added+' pelajar disimpan dalam pelayar ini; '+skipped+' rekod pendua dilangkau; '+missing+' rekod tidak lengkap.','#166534');
+      if(added && typeof window.renderPLOTable==='function')window.renderPLOTable();
+      if(added && typeof window.calcPLO==='function')window.calcPLO();
+      notice(added+' pelajar disimpan; '+skipped+' pendua; '+missing+' maklumat tidak lengkap; '+incomplete+' rekod PLO kurang daripada 9 (tidak disimpan).',incomplete||missing?'#b91c1c':'#166534');
     }
   };
   window.Importer=Importer;
@@ -203,6 +217,10 @@
         byId('imp-avg-'+i).textContent=vals.length?(vals.reduce(function(a,b){return a+b;},0)/vals.length).toFixed(1)+'%':'—';
       }
     });
+    var originalCalcPLO=window.calcPLO;
+    if(typeof originalCalcPLO==='function') {
+      window.calcPLO=function(){originalCalcPLO();persist();};
+    }
     var currentRender=window.renderStudentList;
     if(typeof currentRender==='function'){
       window.renderStudentList=function(){currentRender();persist();};
