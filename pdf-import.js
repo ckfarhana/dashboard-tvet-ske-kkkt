@@ -83,13 +83,12 @@
     var no=matchLine(text,['NO\\.?\\s*(?:PENDAFTARAN|PENDAF|MATRIK|PELAJAR)','NO\\.?\\s*ID','REGISTRATION\\s*(?:NO|NUMBER)']);
     if(!no){var id=text.match(/\bT\d{2}SKE\d{2}[A-Z]?\d{3,6}\b/i);if(id)no=id[0];}
     var kelas=matchLine(text,['KELAS','CLASS']);
-    var semesterSesi=matchLine(text,['SEMESTER\s*\/\s*SESI']);
-    var semester=matchLine(text,['SEMESTER','SEM\.?']);
-    var sesi=matchLine(text,['SESI\s*(?:KELUAR|TAMAT|PENGAJIAN)?','ACADEMIC\s*SESSION']);
-    var combined=semesterSesi.match(/^\s*(\d+)\s*\/\s*(S[12]\d{4})\b/i);
-    if(combined) {semester=combined[1]; sesi=combined[2];}
-    var sessionMatch=sesi.match(/^S([12])(\d{2})(\d{2})$/i);
-    if(sessionMatch) sesi='Sesi '+(sessionMatch[1]==='1'?'I':'II')+' 20'+sessionMatch[2]+'/20'+sessionMatch[3];
+    // Official Lampiran H: "SEMESTER / SESI : 4 / S22526".
+    var semSesi=text.match(/SEMESTER\s*\/\s*SESI\s*[:：]?\s*(\d+)\s*\/\s*(S[12]\d{4})\b/i);
+    var semester=semSesi?semSesi[1]:matchLine(text,['SEMESTER','SEM\.?']);
+    var sesi=semSesi?semSesi[2]:matchLine(text,['SESI\s*(?:KELUAR|TAMAT|PENGAJIAN)','ACADEMIC\s*SESSION']);
+    // Only the PDF's session code is used for Sesi Keluar.
+    if(window.normalizeSesiKeluar)sesi=window.normalizeSesiKeluar(sesi);
     var prog=matchLine(text,['PROGRAM(?:ME)?','KOD\\s*PROGRAM']);
     // A label may inadvertently match a heading; user must review each value.
     if (!name) name=filename.replace(/\.pdf$/i,'').replace(/^Lampiran\s*H\s*[-–_]\s*/i,'').replace(/[_-]/g,' ');
