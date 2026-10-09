@@ -190,7 +190,7 @@
               <th style="background:#1e3a5f;color:#fff;padding:7px 6px;min-width:80px;">Program</th>
               <th style="background:#1e3a5f;color:#fff;padding:7px 6px;min-width:160px;">Kelas</th>
               <th style="background:#1e3a5f;color:#fff;padding:7px 6px;">Sem</th>
-              <th style="background:#1e3a5f;color:#fff;padding:7px 6px;">Sesi Keluar</th>
+              <th style="background:#1e3a5f;color:#fff;padding:7px 6px;">Sesi Tamat</th>
               <th style="background:#1e3a5f;color:#fff;padding:7px 6px;min-width:110px;">Sesi Kemasukan</th>
               <th style="background:#1e3a5f;color:#fff;padding:7px 5px;">PLO1</th>
               <th style="background:#1e3a5f;color:#fff;padding:7px 5px;">PLO2</th>
@@ -224,7 +224,7 @@
       <span class="card-title" style="margin:0;border:none;padding:0;">📋 Senarai Pelajar Berdaftar (<span id="student-count">0</span> orang)</span>
       <button class="btn btn-neutral btn-sm" onclick="confirmClearAll()">🗑️ Kosongkan Semua</button>
     </div>
-    <!-- Filter Sesi Kemasukan & Sesi Keluar -->
+    <!-- Filter Sesi Kemasukan & Sesi Tamat -->
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
       <div style="display:flex;align-items:center;gap:6px;">
         <label style="font-size:12px;font-weight:600;color:#57606a;white-space:nowrap;">🔍 Sesi Kemasukan:</label>
@@ -233,7 +233,7 @@
         </select>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
-        <label style="font-size:12px;font-weight:600;color:#57606a;white-space:nowrap;">🔍 Sesi Keluar:</label>
+        <label style="font-size:12px;font-weight:600;color:#57606a;white-space:nowrap;">🔍 Sesi Tamat:</label>
         <select id="filter-sesi-keluar" onchange="renderStudentList()" style="padding:5px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;">
           <option value="">Semua</option>
         </select>
@@ -244,7 +244,7 @@
       <table class="student-list">
         <thead><tr>
           <th>#</th><th>No. Pendaftaran</th><th>Nama Pelajar</th><th>Program</th>
-          <th>Kelas</th><th>Sem</th><th>Sesi Keluar</th><th>Sesi Kemasukan</th><th>PLO Tersimpan</th><th>Tindakan</th>
+          <th>Kelas</th><th>Sem</th><th>Sesi Tamat</th><th>Sesi Kemasukan</th><th>PLO Tersimpan</th><th>Tindakan</th>
         </tr></thead>
         <tbody id="student-tbody"></tbody>
       </table>
@@ -307,10 +307,10 @@
     <!-- Radar by Sesi -->
     <div class="card">
       <div class="card-title">🕸️ Radar Chart — Mengikut Sesi</div>
-      <div class="info-box info-blue" style="margin-bottom:12px;">Pilih Sesi Keluar untuk melihat purata PLO1–PLO9. Pilih <strong>Semua Sesi</strong> untuk perbandingan merentas sesi.</div>
+      <div class="info-box info-blue" style="margin-bottom:12px;">Pilih Sesi Tamat untuk melihat purata PLO1–PLO9. Pilih <strong>Semua Sesi</strong> untuk perbandingan merentas sesi.</div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
-        <label for="radar-sesi-filter" style="font-weight:600;color:#1e3a5f;font-size:12px;">Tapis Sesi Keluar:</label>
-        <select id="radar-sesi-filter" aria-label="Pilih Sesi Keluar untuk radar chart" onchange="renderPLOOverlayRadar()" style="padding:7px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;min-width:220px;max-width:100%;">
+        <label for="radar-sesi-filter" style="font-weight:600;color:#1e3a5f;font-size:12px;">Tapis Sesi Tamat:</label>
+        <select id="radar-sesi-filter" aria-label="Pilih Sesi Tamat untuk radar chart" onchange="renderPLOOverlayRadar()" style="padding:7px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;min-width:220px;max-width:100%;">
           <option value="">Semua Sesi</option>
         </select>
         <span id="radar-sesi-count" style="font-size:12px;color:#57606a;" aria-live="polite"></span>
@@ -324,10 +324,10 @@
     <!-- Line Chart by Sesi -->
     <div class="card">
       <div class="card-title">📈 Line Chart — Mengikut Sesi</div>
-      <div class="info-box info-blue" style="margin-bottom:12px;">Trend purata PLO1–PLO9 mengikut Sesi Keluar. Pilih satu sesi atau <strong>Semua Sesi</strong> untuk membandingkan garisan. Garisan putus-putus <span style="color:#1e3a5f;font-weight:700;">biru</span> = KPI 80%.</div>
+      <div class="info-box info-blue" style="margin-bottom:12px;">Trend purata PLO1–PLO9 mengikut Sesi Tamat. Pilih satu sesi atau <strong>Semua Sesi</strong> untuk membandingkan garisan. Garisan putus-putus <span style="color:#1e3a5f;font-weight:700;">biru</span> = KPI 80%.</div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
-        <label for="line-sesi-filter" style="font-weight:600;color:#1e3a5f;font-size:12px;">Tapis Sesi Keluar:</label>
-        <select id="line-sesi-filter" aria-label="Pilih Sesi Keluar untuk line chart" onchange="renderPLOLineBySesi()" style="padding:7px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;min-width:220px;max-width:100%;">
+        <label for="line-sesi-filter" style="font-weight:600;color:#1e3a5f;font-size:12px;">Tapis Sesi Tamat:</label>
+        <select id="line-sesi-filter" aria-label="Pilih Sesi Tamat untuk line chart" onchange="renderPLOLineBySesi()" style="padding:7px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;min-width:220px;max-width:100%;">
           <option value="">Semua Sesi</option>
         </select>
         <span id="line-sesi-count" style="font-size:12px;color:#57606a;" aria-live="polite"></span>
@@ -627,7 +627,7 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Sesi Keluar</label>
+        <label>Sesi Tamat</label>
         <select id="kf-sesi-keluar" onchange="renderKohort()">
           <option value="">Semua</option>
         </select>
@@ -675,7 +675,7 @@
         <div id="kc-bar-kohort"></div>
       </div>
       <div class="card">
-        <div class="card-title">🎓 Bilangan Pelajar Mengikut Sesi Keluar</div>
+        <div class="card-title">🎓 Bilangan Pelajar Mengikut Sesi Tamat</div>
         <div id="kc-bar-keluar"></div>
       </div>
     </div>
@@ -685,7 +685,7 @@
       <div class="card">
         <div class="card-title">⏱️ Taburan Tempoh Pengajian (Semester)</div>
         <div id="kc-bar-duration"></div>
-        <div class="info-box info-amber" style="margin-top:10px;font-size:11.5px;">Hanya dikira jika <strong>Sesi Kemasukan</strong> dan <strong>Sesi Keluar</strong> sah. "Belum Dapat Ditentukan" jika tiada Sesi Keluar.</div>
+        <div class="info-box info-amber" style="margin-top:10px;font-size:11.5px;">Hanya dikira jika <strong>Sesi Kemasukan</strong> dan <strong>Sesi Tamat</strong> sah. "Belum Dapat Ditentukan" jika tiada Sesi Tamat.</div>
       </div>
       <div class="card">
         <div class="card-title">📈 Trend Purata PLO Mengikut Kohort</div>
@@ -837,19 +837,29 @@
     return 'Sesi '+(digit==='0'?'I':'II')+' '+year+'/'+(year+1);
   }
 
-  /** Lampiran H exit session. Never infer this from the registration number. */
+  /** Lampiran H: 4 / S22526 -> Sesi Tamat 2:2025/2026.
+   * Semester (4) is separate from session number (2).
+   * Legacy labels are converted without overwriting an unknown PDF value.
+   */
   function normalizeSesiKeluar(raw) {
     var value=String(raw==null?'':raw).trim();
     if(!value)return '';
-    var m=value.match(/^S([12])(\d{2})(\d{2})$/i);
-    return m?'Sesi '+(m[1]==='1'?'I':'II')+' 20'+m[2]+'/20'+m[3]:value;
+    var m=value.match(/^(?:\d+\s*\/\s*)?S([12])(\d{2})(\d{2})$/i);
+    if(!m)m=value.match(/^Sesi\s*Tamat\s*([12])\s*:\s*(20\d{2})\s*\/\s*(20\d{2})$/i);
+    if(m && m[2].length===4)return Number(m[3])===Number(m[2])+1?'Sesi Tamat '+m[1]+':'+m[2]+'/'+m[3]:'Tidak Dapat Ditentukan';
+    if(m)return Number(m[3])===((Number(m[2])+1)%100)?'Sesi Tamat '+m[1]+':20'+m[2]+'/20'+m[3]:'Tidak Dapat Ditentukan';
+    m=value.match(/^Sesi\s*(I|II|1|2)\s*(\d{4})\s*\/\s*(\d{4})$/i);
+    if(m)return Number(m[3])===Number(m[2])+1?'Sesi Tamat '+(m[1].toUpperCase()==='II'?'2':'1')+':'+m[2]+'/'+m[3]:'Tidak Dapat Ditentukan';
+    return 'Tidak Dapat Ditentukan';
   }
 
   /** Backwards-compatible migration: snake_case plus current dashboard keys. */
   function syncStudentSessions(student) {
-    var source=student.sesiKeluar!=null?student.sesiKeluar:
-      (student.sesi_keluar!=null?student.sesi_keluar:student.sesi);
+    var source=student.sesiTamat!=null?student.sesiTamat:(student.sesiKeluar!=null?student.sesiKeluar:
+      (student.sesi_keluar!=null?student.sesi_keluar:student.sesi));
     var keluar=normalizeSesiKeluar(source), masuk=deriveSesiKemasukan(student.no);
+    student.sesiTamat=keluar;
+    student.sesi_tamat=keluar;
     student.sesiKeluar=keluar;
     student.sesi_keluar=keluar;
     student.sesi=keluar;
@@ -1191,7 +1201,7 @@
     if (sel.selectedIndex < sel.options.length-1) { sel.selectedIndex++; renderPLOIndividualRadar(); }
   }
 
-  /** Sesi Keluar daripada Lampiran H; tiada sesi rekaan atau rekod tanpa PLO. */
+  /** Sesi Tamat daripada Lampiran H; tiada sesi rekaan atau rekod tanpa PLO. */
   function getPLOChartSessionGroups() {
     var bySession = Object.create(null);
     students.forEach(function(student){
@@ -1241,7 +1251,7 @@
     radarDrawPolygon(svg, Array(9).fill(80), cx, cy, rad, angles, 'rgba(30,58,95,0.06)', '#1e3a5f', 1.5, 1);
     radarDrawLabels(svg, cx, cy, rad, angles, PLO_LABELS);
 
-    // Group PLO data by actual Sesi Keluar, then apply the radar-only filter.
+    // Group PLO data by actual Sesi Tamat, then apply the radar-only filter.
     var groups = getPLOChartSessionGroups();
     var sesiMap = groups.map;
     var sesiKeys = getSelectedPLOChartSessions(
@@ -1303,7 +1313,7 @@
     var COLORS = ['#1e3a5f','#16a34a','#dc2626','#d97706','#7c3aed','#0891b2','#db2777','#ea580c'];
 
     if (!sesiKeys.length) {
-      container.textContent = 'Tiada data PLO mengikut Sesi Keluar untuk dipaparkan.';
+      container.textContent = 'Tiada data PLO mengikut Sesi Tamat untuk dipaparkan.';
       legendDiv.textContent = '';
       return;
     }
@@ -1957,6 +1967,7 @@
   window.confirmClearAll       = confirmClearAll;
   window.deriveSesiKemasukan   = deriveSesiKemasukan;
   window.normalizeSesiKeluar    = normalizeSesiKeluar;
+  window.normalizeSesiTamat     = normalizeSesiKeluar;
   window.syncStudentSessions   = syncStudentSessions;
 
   /* =========================================================
@@ -1982,6 +1993,8 @@
   function sesiToIndex(sesiStr) {
     if (!sesiStr || typeof sesiStr !== 'string') return null;
     var m = sesiStr.match(/Sesi\s*(I{1,2})\s+(\d{4})/i);
+    var tamat = sesiStr.match(/^Sesi Tamat\s*([12]):(\d{4})\/(\d{4})$/i);
+    if (tamat) return Number(tamat[2])*2+(tamat[1]==='2'?1:0);
     if (!m) return null;
     var yr = parseInt(m[2], 10);
     var roman = m[1].toUpperCase();
@@ -2117,14 +2130,14 @@
     document.getElementById('kohort-kpi-cards').innerHTML =
       kpiCard('Jumlah Pelajar', totalP, 'dalam paparan semasa', null, null) +
       kpiCard('Bilangan Kohort', totalK, 'Sesi Kemasukan unik', null, null) +
-      kpiCard('Rekod Sesi Keluar', verifiedSL, 'rekod dengan Sesi Keluar', null, null) +
+      kpiCard('Rekod Sesi Tamat', verifiedSL, 'rekod dengan Sesi Tamat', null, null) +
       kpiCard('Purata PLO Keseluruhan', overallAvg !== null ? overallAvg+'%' : '—', 'purata semua PLO', overallAvg, kpi) +
       kpiCard('PLO Capai KPI', ploCapai+'/9', 'PLO ≥ '+kpi+'%', ploCapai, 9);
 
     // ── BAR: Kohort ──
     renderKcBarSimple('kc-bar-kohort', kohortKeys, kohortKeys.map(function(k){ return kohortMap[k].length; }), '#1e3a5f', 'Pelajar');
 
-    // ── BAR: Sesi Keluar ──
+    // ── BAR: Sesi Tamat ──
     var keluarMap = {};
     filtered.forEach(function(s){
       var k = s.sesi || 'Tidak Disahkan';
@@ -2372,7 +2385,7 @@
     ensureSesiKemasukan();
     var filtered = getFilteredStudents();
     var kpi = parseFloat(kfVal('kf-kpi')) || 80;
-    var headers = ['No.Pendaftaran','Nama','Program','Kelas','Semester','Sesi Keluar','Sesi Kemasukan',
+    var headers = ['No.Pendaftaran','Nama','Program','Kelas','Semester','Sesi Tamat','Sesi Kemasukan',
                    'Tempoh Pengajian (Sem)',
                    'PLO1','PLO2','PLO3','PLO4','PLO5','PLO6','PLO7','PLO8','PLO9','Purata PLO'];
     var rows = [headers.join(',')];
