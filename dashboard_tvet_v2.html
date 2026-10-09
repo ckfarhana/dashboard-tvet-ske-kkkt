@@ -307,7 +307,14 @@
     <!-- Radar by Sesi -->
     <div class="card">
       <div class="card-title">🕸️ Radar Chart — Mengikut Sesi</div>
-      <div class="info-box info-blue" style="margin-bottom:12px;">Setiap sesi dipaparkan sebagai satu poligon (purata PLO pelajar dalam sesi tersebut) untuk perbandingan merentas sesi.</div>
+      <div class="info-box info-blue" style="margin-bottom:12px;">Pilih Sesi Keluar untuk melihat purata PLO1–PLO9. Pilih <strong>Semua Sesi</strong> untuk perbandingan merentas sesi.</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+        <label for="radar-sesi-filter" style="font-weight:600;color:#1e3a5f;font-size:12px;">Tapis Sesi Keluar:</label>
+        <select id="radar-sesi-filter" aria-label="Pilih Sesi Keluar untuk radar chart" onchange="renderPLOOverlayRadar()" style="padding:7px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;min-width:220px;max-width:100%;">
+          <option value="">Semua Sesi</option>
+        </select>
+        <span id="radar-sesi-count" style="font-size:12px;color:#57606a;" aria-live="polite"></span>
+      </div>
       <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start;">
         <div class="radar-wrap"><svg id="plo-radar-overlay" width="380" height="400" style="overflow:visible;"></svg></div>
         <div id="plo-radar-overlay-legend" style="min-width:180px;flex:1;font-size:12px;padding-top:20px;"></div>
@@ -317,7 +324,14 @@
     <!-- Line Chart by Sesi -->
     <div class="card">
       <div class="card-title">📈 Line Chart — Mengikut Sesi</div>
-      <div class="info-box info-blue" style="margin-bottom:12px;">Trend purata markah PLO1–PLO9 merentas sesi. Setiap garisan mewakili satu sesi. Garisan putus-putus <span style="color:#1e3a5f;font-weight:700;">biru</span> = KPI 80%.</div>
+      <div class="info-box info-blue" style="margin-bottom:12px;">Trend purata PLO1–PLO9 mengikut Sesi Keluar. Pilih satu sesi atau <strong>Semua Sesi</strong> untuk membandingkan garisan. Garisan putus-putus <span style="color:#1e3a5f;font-weight:700;">biru</span> = KPI 80%.</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+        <label for="line-sesi-filter" style="font-weight:600;color:#1e3a5f;font-size:12px;">Tapis Sesi Keluar:</label>
+        <select id="line-sesi-filter" aria-label="Pilih Sesi Keluar untuk line chart" onchange="renderPLOLineBySesi()" style="padding:7px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;min-width:220px;max-width:100%;">
+          <option value="">Semua Sesi</option>
+        </select>
+        <span id="line-sesi-count" style="font-size:12px;color:#57606a;" aria-live="polite"></span>
+      </div>
       <div style="overflow-x:auto;">
         <div id="plo-line-chart-sesi"></div>
       </div>
@@ -1177,6 +1191,45 @@
     if (sel.selectedIndex < sel.options.length-1) { sel.selectedIndex++; renderPLOIndividualRadar(); }
   }
 
+  /** Sesi Keluar daripada Lampiran H; tiada sesi rekaan atau rekod tanpa PLO. */
+  function getPLOChartSessionGroups() {
+    var bySession = Object.create(null);
+    students.forEach(function(student){
+      var sesi = student.sesiKeluar || student.sesi || '';
+      if (typeof sesi !== 'string' || !sesi.trim()) return;
+      var scores = ploData[student.id];
+      if (!Array.isArray(scores) || !scores.some(function(v){
+        return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 100;
+      })) return;
+      sesi = sesi.trim();
+      if (!bySession[sesi]) bySession[sesi] = [];
+      bySession[sesi].push(student);
+    });
+    var keys = Object.keys(bySession).sort(function(a,b){
+      var ia = sesiToIndex(a), ib = sesiToIndex(b);
+      return ia !== null && ib !== null ? ia-ib : a.localeCompare(b,'ms');
+    });
+    return { map:bySession, keys:keys };
+  }
+
+  /** Setiap graf mempunyai drop-down sendiri; pilihan dikekalkan selepas import. */
+  function getSelectedPLOChartSessions(selectId, allKeys, countId, groupMap) {
+    var select = document.getElementById(selectId);
+    if (!select) return allKeys;
+    var previous = select.value;
+    select.replaceChildren();
+    select.add(new Option('Semua Sesi', ''));
+    allKeys.forEach(function(sesi){ select.add(new Option(sesi, sesi)); });
+    select.value = allKeys.indexOf(previous) !== -1 ? previous : '';
+    var visible = select.value ? [select.value] : allKeys;
+    var studentCount = visible.reduce(function(n, sesi){ return n + (groupMap[sesi] || []).length; },0);
+    var count = document.getElementById(countId);
+    if (count) count.textContent = allKeys.length
+      ? visible.length+' sesi • '+studentCount+' pelajar dengan data PLO'
+      : 'Tiada sesi dengan data PLO';
+    return visible;
+  }
+
   function renderPLOOverlayRadar() {
     var svg = document.getElementById('plo-radar-overlay');
     svg.innerHTML = '';
@@ -1188,22 +1241,19 @@
     radarDrawPolygon(svg, Array(9).fill(80), cx, cy, rad, angles, 'rgba(30,58,95,0.06)', '#1e3a5f', 1.5, 1);
     radarDrawLabels(svg, cx, cy, rad, angles, PLO_LABELS);
 
-    // Group students by sesi, compute average PLO per sesi
-    var sesiMap = {};
-    students.forEach(function(s){
-      var key = s.sesi || 'Tiada Sesi';
-      if (!sesiMap[key]) sesiMap[key] = [];
-      sesiMap[key].push(s);
-    });
-
-    var sesiKeys = Object.keys(sesiMap).sort();
+    // Group PLO data by actual Sesi Keluar, then apply the radar-only filter.
+    var groups = getPLOChartSessionGroups();
+    var sesiMap = groups.map;
+    var sesiKeys = getSelectedPLOChartSessions(
+      'radar-sesi-filter', groups.keys, 'radar-sesi-count', sesiMap);
     var legendHtml = '<div style="font-weight:700;margin-bottom:8px;font-size:12px;color:#1e3a5f;">📋 Legenda Sesi</div>';
 
     if (!sesiKeys.length) {
       legendHtml += '<div style="font-size:11px;color:#57606a;">Tiada data sesi.</div>';
     }
 
-    sesiKeys.forEach(function(sesi, si){
+    sesiKeys.forEach(function(sesi){
+      var si = groups.keys.indexOf(sesi); // stable color while filtering
       var group = sesiMap[sesi];
       // Compute per-PLO average for this sesi (exclude nulls)
       var avgVals = Array(9).fill(0).map(function(_, pi){
@@ -1245,15 +1295,18 @@
     var legendDiv  = document.getElementById('plo-line-legend');
     if (!container) return;
 
-    // Kumpul pelajar mengikut sesi
-    var sesiMap = {};
-    students.forEach(function(s){
-      var key = s.sesi || 'Tiada Sesi';
-      if (!sesiMap[key]) sesiMap[key] = [];
-      sesiMap[key].push(s);
-    });
-    var sesiKeys = Object.keys(sesiMap).sort();
+    // Independent line-chart session filter; do not change radar selection.
+    var groups = getPLOChartSessionGroups();
+    var sesiMap = groups.map;
+    var sesiKeys = getSelectedPLOChartSessions(
+      'line-sesi-filter', groups.keys, 'line-sesi-count', sesiMap);
     var COLORS = ['#1e3a5f','#16a34a','#dc2626','#d97706','#7c3aed','#0891b2','#db2777','#ea580c'];
+
+    if (!sesiKeys.length) {
+      container.textContent = 'Tiada data PLO mengikut Sesi Keluar untuk dipaparkan.';
+      legendDiv.textContent = '';
+      return;
+    }
 
     // Kira purata markah PLO per sesi
     var sesiAvg = sesiKeys.map(function(sesi){
@@ -1304,7 +1357,7 @@
     // Lines per sesi
     sesiKeys.forEach(function(sesi, si){
       var avg = sesiAvg[si];
-      var col = COLORS[si % COLORS.length];
+      var col = COLORS[groups.keys.indexOf(sesi) % COLORS.length];
 
       // Build polyline points (skip nulls with line break)
       var segments = [], cur = [];
@@ -1333,11 +1386,18 @@
     container.innerHTML = svg;
 
     // Legend
-    legendDiv.innerHTML = sesiKeys.map(function(s, si){
-      return '<div class="legend-item">'
-           + '<div style="width:22px;height:3px;background:'+COLORS[si%COLORS.length]+';border-radius:2px;margin-right:4px;"></div>'
-           + '<span>'+s+'</span></div>';
-    }).join('');
+    legendDiv.replaceChildren();
+    sesiKeys.forEach(function(sesi){
+      var item = document.createElement('div');
+      item.className = 'legend-item';
+      var line = document.createElement('div');
+      line.style.cssText = 'width:22px;height:3px;border-radius:2px;margin-right:4px;';
+      line.style.background = COLORS[groups.keys.indexOf(sesi) % COLORS.length];
+      var name = document.createElement('span');
+      name.textContent = sesi;
+      item.append(line, name);
+      legendDiv.appendChild(item);
+    });
   }
 
   function fillRandomPLO() { alert('Data rawak dinyahaktifkan. Sila gunakan nilai PLO sebenar daripada Lampiran H.'); }
