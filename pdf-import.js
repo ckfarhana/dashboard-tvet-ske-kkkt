@@ -4,7 +4,7 @@
   'use strict';
   var files = [], preview = [];
   var STORAGE_KEY = 'kkkt_ske_lampiran_h_v1';
-  var columns = ['nama','no','prog','kelas','semester','sesi','sesiKemasukan'];
+  var columns = ['nama','no','prog','kelas','semester','sesiKeluar','sesiKemasukan'];
   function byId(id) { return document.getElementById(id); }
   function safe(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function norm(s) { return String(s || '').replace(/\s+/g,' ').trim(); }
@@ -96,13 +96,14 @@
     if (!prog) prog='Sijil Teknologi Elektrik';
     var plos=extractPLO(text);
     var masuk=window.deriveSesiKemasukan ? window.deriveSesiKemasukan(no) : '';
-    return {nama:name,no:no,prog:prog,kelas:kelas,semester:semester,sesi:sesi,sesiKemasukan:masuk,
+    return {nama:name,no:no,prog:prog,kelas:kelas,semester:semester,sesiKeluar:sesi,sesiKemasukan:masuk,
       plo:plos,source:filename+' ('+pages+' halaman)',selected:true};
   }
   function renderPreview(){
     var box=byId('imp-preview-wrap'), tbody=byId('imp-preview-tbody');
     if(!box||!tbody)return;
     tbody.innerHTML=preview.map(function(r,i){
+      r.sesiKemasukan=window.deriveSesiKemasukan(r.no);
       var existing=(window.students||[]).some(function(s){return r.no && String(s.no).toUpperCase()===String(r.no).toUpperCase();});
       var editable=columns.map(function(k){
         var width=(k==='nama'||k==='kelas')?'150px':'95px';
@@ -118,7 +119,7 @@
         '<td style="padding:5px;font-size:11px;">'+safe(r.source)+'</td></tr>';
     }).join('');
     box.style.display=preview.length?'block':'none';
-    if(byId('imp-dup-notice'))byId('imp-dup-notice').textContent='Semak nama, no. pendaftaran, sesi dan 9 PLO. Rekod sedia ada dengan no. pendaftaran yang sama akan dilangkau; data yang tidak dapat dikesan boleh dibetulkan sebelum simpan.';
+    if(byId('imp-dup-notice'))byId('imp-dup-notice').textContent='Semak nama, no. pendaftaran, sesi dan 9 PLO. Rekod sedia ada dengan no. pendaftaran yang sama akan dikemas kini; data yang tidak dapat dikesan boleh dibetulkan sebelum simpan.';
     notice('');
   }
   function persist(){
@@ -131,6 +132,7 @@
     try{
       var data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
       if(data && Array.isArray(data.students) && data.ploData && typeof data.ploData==='object'){
+        data.students.forEach(function(s){if(window.syncStudentSessions)window.syncStudentSessions(s);});
         data.students.forEach(function(s){ if(s && s.id && s.no && !window.students.some(function(x){return x.id===s.id;}))window.students.push(s); });
         Object.keys(data.ploData).forEach(function(k){window.ploData[k]=data.ploData[k];});
         window.renderStudentList();
@@ -181,11 +183,14 @@
         function clean(s){return norm(s).replace(/[<>]/g,'');}
         var id='pdf-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
         var item={id:id,nama:clean(r.nama),no:clean(r.no),prog:clean(r.prog),kelas:clean(r.kelas),
-          semester:clean(r.semester),sesi:clean(r.sesi),sesiKemasukan:clean(r.sesiKemasukan)};
+          semester:clean(r.semester),sesiKeluar:clean(r.sesiKeluar),sesiKemasukan:window.deriveSesiKemasukan(r.no)};
+        item.sesi=item.sesiKeluar;
+        item.sesi_keluar=item.sesiKeluar;
+        item.sesi_kemasukan=item.sesiKemasukan;
         item.batch=window.makeBatchKey ? window.makeBatchKey(item.sesiKemasukan,item.sesi):item.sesiKemasukan;
         if(existing) {
           // Update in place so every tab keeps the same student ID and references.
-          ['nama','prog','kelas','semester','sesi','sesiKemasukan','batch'].forEach(function(k){
+          ['nama','prog','kelas','semester','sesiKeluar','sesi','sesi_keluar','sesiKemasukan','sesi_kemasukan','batch'].forEach(function(k){
             if(item[k]) existing[k]=item[k];
           });
           window.ploData[existing.id]=r.plo.slice();
@@ -196,6 +201,7 @@
           added++;
         }
       });
+      if(window.syncStudentSessions)window.students.forEach(window.syncStudentSessions);
       window.renderStudentList();
       persist();
       if(typeof window.renderPLOTable==='function')window.renderPLOTable();
@@ -219,7 +225,10 @@
       var el=e.target,i=Number(el.dataset.row);
       if(el.dataset.select!==undefined){preview[Number(el.dataset.select)].selected=el.checked;return;}
       if(!preview[i])return;
-      if(el.dataset.key)preview[i][el.dataset.key]=el.value.trim();
+      if(el.dataset.key){
+        preview[i][el.dataset.key]=el.value.trim();
+        if(el.dataset.key==='no')renderPreview();
+      }
       if(el.dataset.plo!==undefined){
         var v=el.value.trim(),n=Number(v);
         if(v!=='' && (!Number.isFinite(n)||n<0||n>100)){alert('Nilai PLO mesti antara 0 hingga 100.');el.focus();return;}
@@ -228,6 +237,7 @@
         byId('imp-avg-'+i).textContent=vals.length?(vals.reduce(function(a,b){return a+b;},0)/vals.length).toFixed(1)+'%':'—';
       }
     });
+    window.saveDashboardData=persist;
     var originalCalcPLO=window.calcPLO;
     if(typeof originalCalcPLO==='function') {
       window.calcPLO=function(){originalCalcPLO();persist();};
